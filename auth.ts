@@ -6,17 +6,17 @@ import bcrypt from "bcryptjs";
 import Google from "next-auth/providers/google";
 import { truncate } from "node:fs/promises";
 
-export const { handlers , signIn, signOut, auth } = NextAuth({
+export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
         Credentials({
 
             credentials: {
-                email: { label: "email"  },
+                email: { label: "email" },
                 password: { label: "Password", type: "password" },
             },
 
 
-            async authorize(credentials:any) {
+            async authorize(credentials: any) {
                 await ConnectDb();
                 const email = credentials.email as string;
                 const pass = credentials.password as string;
@@ -52,30 +52,30 @@ export const { handlers , signIn, signOut, auth } = NextAuth({
 
 
         Google({
-            clientId:process.env.ClIENT_ID,
-            clientSecret:process.env.CLIENT_SECRET
+            clientId: process.env.ClIENT_ID,
+            clientSecret: process.env.CLIENT_SECRET
         })
     ],
 
 
 
 
-    callbacks:{
+    callbacks: {
 
-        async signIn({account , user}:any){
+        async signIn({ account, user }: any) {
             await ConnectDb();
-            if(account.provider=="google"){
-                let DbUser = await User.findOne({email:user?.email})
-                if(!DbUser){
+            if (account.provider == "google") {
+                let DbUser = await User.findOne({ email: user?.email })
+                if (!DbUser) {
                     DbUser = await User.create({
-                        name : user?.name,
-                        email:user?.email,
-                        image:user?.image
+                        name: user?.name,
+                        email: user?.email,
+                        image: user?.image
                     })
-
-                    user.id = DbUser._id;
-                    user.role = DbUser.role
                 }
+
+                user.id = DbUser._id.toString();
+                user.role = DbUser.role
             }
 
             return true
@@ -86,22 +86,22 @@ export const { handlers , signIn, signOut, auth } = NextAuth({
 
 
 
-        jwt({token , user}:any){
-            if(user){
+        jwt({ token, user }: any) {
+            if (user) {
                 token.id = user?.id,
-                token.name = user?.name,
-                token.email = user?.email,
-                token.role =user?.role
+                    token.name = user?.name,
+                    token.email = user?.email,
+                    token.role = user?.role
             }
             return token
         },
-        session({token , session}:any){
+        session({ token, session }: any) {
 
-            if(session.user){
-              session.user.id = token?.id as string
-              session.user.name= token?.name as string
-              session.user.email = token?.email as string
-              session.user.role = token?.role as string
+            if (session.user) {
+                session.user.id = token?.id as string
+                session.user.name = token?.name as string
+                session.user.email = token?.email as string
+                session.user.role = token?.role as string
             }
             return session
 
@@ -110,14 +110,14 @@ export const { handlers , signIn, signOut, auth } = NextAuth({
     }
     ,
 
-    pages:{
-        signIn:"/login",
-        error:"/login"
+    pages: {
+        signIn: "/login",
+        error: "/login"
     },
 
-    session:{
-        strategy:"jwt",
-        maxAge:10*24*60*60
+    session: {
+        strategy: "jwt",
+        maxAge: 10 * 24 * 60 * 60
     },
-    secret:process.env.AUTH_SECRET
+    secret: process.env.AUTH_SECRET
 })
