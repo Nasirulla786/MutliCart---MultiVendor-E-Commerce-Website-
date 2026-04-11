@@ -4,10 +4,11 @@ import { motion } from "framer-motion"
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Oval } from 'react-loader-spinner';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import Image from 'next/image';
 
 const page = () => {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,26 +17,38 @@ const page = () => {
   const handleSubmit = async () => {
 
     try {
-      if(!name ||!email || !password){
+      if (!email || !password) {
         toast.error("required All fields");
       }
+
+      // console.log("asss" , email , password) print ho rhaa hai
       setLoading(true);
-      const res = await axios.post("/api/auth/register", { name, email, password })
-      if (res) {
-        toast.success(res.data.message);
-        setEmail("");
-        setName("");
-        setPassword("");
-        setLoading(false);
-        router.push("/")
+      const res = await signIn("credentials", { email, password , redirect:false});
+
+      console.log("this is ",res);
+      if(res?.error){
+        toast.error("Invalid credentials");
+
       }
+
+      else{
+        toast.success("Login successFully");
+        router.push("/");
+      }
+
+
+
+      setEmail("");
+      setPassword("");
+      setLoading(false);
+      // router.push("/")
+
 
 
 
     } catch (error) {
       console.log("error of resgiter");
       setEmail("");
-      setName("");
       setPassword("");
       setLoading(false);
 
@@ -53,17 +66,9 @@ const page = () => {
 
         {/* Title */}
         <h1 className='text-3xl font-bold text-white text-center mb-6'>
-          Create Account
+          LogIn Your Account
         </h1>
 
-        {/* Name */}
-        <input
-          type="text"
-          placeholder='Full Name'
-          className='w-full mb-4 p-3 rounded-lg bg-white/20 text-white placeholder-gray-300 outline-none focus:ring-2 focus:ring-blue-500'
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
 
         {/* Email */}
         <input
@@ -85,22 +90,22 @@ const page = () => {
 
         {/* Register Button */}
         <motion.button
-  whileTap={{ scale: 0.95 }}
-  whileHover={{ scale: 1.05 }}
-  onClick={handleSubmit}
-  className='w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold mb-4 flex items-center justify-center'
->
-  {loading ? (
-    <Oval
-      height={20}
-      width={20}
-      color="white"
-      secondaryColor="gray"
-    />
-  ) : (
-    "Register"
-  )}
-</motion.button>
+          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.05 }}
+          onClick={handleSubmit}
+          className='w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold mb-4 flex items-center justify-center'
+        >
+          {loading ? (
+            <Oval
+              height={20}
+              width={20}
+              color="white"
+              secondaryColor="gray"
+            />
+          ) : (
+            "SignIn"
+          )}
+        </motion.button>
 
         {/* Divider */}
         <div className='flex items-center gap-2 my-4'>
@@ -114,18 +119,24 @@ const page = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className='w-full flex items-center justify-center gap-3 bg-white text-black py-3 rounded-lg font-medium'
+
+          onClick={()=>{
+            signIn("google" , {callbackUrl:"/"})
+          }}
         >
-          <img
+          <Image
             src="https://www.svgrepo.com/show/475656/google-color.svg"
             alt="google"
             className='w-5 h-5'
+            height={5}
+            width={5}
           />
           Continue with Google
         </motion.button>
 
         {/* Footer */}
         <p className='text-center text-gray-300 mt-5 text-sm'>
-          Already have an account? <span className='text-blue-400 cursor-pointer'>Login</span>
+          Create a new account? <span className='text-blue-400 cursor-pointer' onClick={() => router.push("/register")}>SignUp</span>
         </p>
 
       </motion.div>
