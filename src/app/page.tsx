@@ -20,6 +20,8 @@ export default async function Home() {
     redirect("/login");
   }
 
+
+  // console.log("this is aha" , user);
   const inComplete = !user.role || !user.phone;
 
 

@@ -2,279 +2,293 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, ShoppingCart, Phone, User, LogOut, X, Menu, ChevronDown, Settings, UserCircle } from "lucide-react";
+import {
+  Home, ShoppingCart, Phone, LogOut,
+  X, Menu, ChevronDown, Settings, UserCircle
+} from "lucide-react";
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function Navbar({ user }: any) {
-    const [open, setOpen] = useState(false);
-    const [profileOpen, setProfileOpen] = useState(false);
-    const profileRef = useRef<HTMLDivElement>(null);
-    const role = user?.role;
+  const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const role = user?.role;
+  const router = useRouter();
 
-    // Close profile popup on outside click
-    useEffect(() => {
-        const handleClick = (e: MouseEvent) => {
-            if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-                setProfileOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClick);
-        return () => document.removeEventListener("mousedown", handleClick);
-    }, []);
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
-    return (
-        <>
-            {/* NAVBAR */}
-            <motion.div
-                initial={{ y: -80, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="w-full px-6 h-16 border-b border-white/10 flex items-center justify-between text-white bg-gradient-to-tr from-black via-blue-950 to-black"
+  return (
+    <>
+      {/* ─── NAVBAR ─── */}
+      <motion.nav
+        initial={{ y: -60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="w-full h-16 px-6 flex items-center justify-between
+                   bg-[#08090c] border-b border-white/[0.06] text-white"
+      >
+        {/* LOGO */}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-[10px] bg-[#1a1f2e] border border-[#6384ff]/25
+                          flex items-center justify-center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="#6384ff" strokeWidth="2" strokeLinecap="round">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 01-8 0" />
+            </svg>
+          </div>
+          <span className="text-[17px] font-semibold tracking-tight">
+            Multi<span className="text-[#6384ff]">Mart</span>
+          </span>
+        </div>
+
+        {/* DESKTOP LINKS */}
+        <div className="hidden md:flex items-center gap-1">
+          {(role === "user" || role === "vendor") && (
+            <NavLink icon={<Home size={15} />} label="Home" active />
+          )}
+          {role === "user" && (
+            <NavLink icon={<Phone size={15} />} label="Call" />
+          )}
+          {role === "vendor" && (
+            <NavLink icon={<Phone size={15} />} label="Orders" />
+          )}
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="hidden md:flex items-center gap-2">
+
+          {/* Cart */}
+          {role === "user" && (
+            <button className="relative w-9 h-9 rounded-[10px]
+                               bg-white/[0.04] border border-white/[0.07]
+                               flex items-center justify-center text-white/60
+                               hover:bg-white/[0.08] hover:text-white transition-all duration-150">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#6384ff] rounded-full
+                               text-[9px] font-bold text-white flex items-center justify-center
+                               border-2 border-[#08090c]">3</span>
+              <ShoppingCart size={15} />
+            </button>
+          )}
+
+          {/* Profile */}
+          <div ref={profileRef} className="relative">
+            <button
+              onClick={() => setProfileOpen(!profileOpen)}
+              className="flex items-center gap-2 pl-[5px] pr-3 py-[5px]
+                         rounded-xl bg-white/[0.04] border border-white/[0.07]
+                         hover:bg-white/[0.08] hover:border-white/[0.12]
+                         transition-all duration-150"
             >
-                {/* SVG LOGO */}
-                <div className="flex items-center gap-3">
-                    <motion.div whileHover={{ rotate: 360 }} transition={{ duration: 0.6 }}>
-                        <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="38" height="38" rx="10" fill="url(#grad)" />
-                            <path d="M10 14h18M10 19h18M10 24h18" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
-                            <circle cx="19" cy="10" r="3" fill="#60a5fa" />
-                            <defs>
-                                <linearGradient id="grad" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
-                                    <stop stopColor="#1e3a8a" />
-                                    <stop offset="1" stopColor="#1d4ed8" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                    </motion.div>
-                    <motion.span
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="text-white font-bold text-xl tracking-wide"
-                    >
-                        Multi<span className="text-blue-400">Mart</span>
-                    </motion.span>
-                </div>
+              <div className="w-7 h-7 rounded-[8px] bg-gradient-to-br from-[#6384ff] to-[#a78bfa]
+                              flex items-center justify-center text-[11px] font-bold text-white">
+                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+              <span className="text-[13px] font-medium text-white/85">
+                {user?.name?.split(" ")[0] || "Profile"}
+              </span>
+              <motion.div animate={{ rotate: profileOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                <ChevronDown size={13} className="text-white/35" />
+              </motion.div>
+            </button>
 
-                {/* DESKTOP MENU */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="hidden md:flex items-center gap-6 text-sm"
-                >
-                    {(role === "user" || role === "vendor") && (
-                        <NavItem icon={<Home size={18} />} label="Home" />
-                    )}
-                    {role === "user" && (
-                        <>
-                            <NavItem icon={<ShoppingCart size={18} />} label="Cart" />
-                            <NavItem icon={<Phone size={18} />} label="Call" />
-                        </>
-                    )}
-                    {role === "vendor" && (
-                        <NavItem icon={<Phone size={18} />} label="Orders" />
-                    )}
-
-                    {/* PROFILE BUTTON - DESKTOP */}
-                    <div ref={profileRef} className="relative">
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setProfileOpen(!profileOpen)}
-                            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors"
-                        >
-                            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold">
-                                {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                            </div>
-                            <span className="text-sm">{user?.name?.split(" ")[0] || "Profile"}</span>
-                            <motion.div animate={{ rotate: profileOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                                <ChevronDown size={14} />
-                            </motion.div>
-                        </motion.button>
-
-                        {/* PROFILE POPUP */}
-                        <AnimatePresence>
-                            {profileOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                                    transition={{ duration: 0.15 }}
-                                    className="absolute right-0 top-12 w-56 bg-[#0d1117] border border-white/10 rounded-xl shadow-2xl p-2 z-50"
-                                >
-                                    {/* USER INFO */}
-                                    <div className="px-3 py-2 mb-1 border-b border-white/10">
-                                        <p className="text-sm font-semibold text-white">{user?.name || "User"}</p>
-                                        <p className="text-xs text-white/40 truncate">{user?.email || ""}</p>
-                                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full mt-1 inline-block capitalize">
-                                            {role}
-                                        </span>
-                                    </div>
-
-                                    <PopupItem icon={<UserCircle size={15} />} label="My Profile" />
-                                    <PopupItem icon={<Settings size={15} />} label="Settings" />
-
-                                    <div className="border-t border-white/10 mt-1 pt-1">
-                                        <motion.button
-                                            whileHover={{ x: 3 }}
-                                            onClick={() => signOut()}
-                                            className="w-full flex items-center gap-2 text-red-400 hover:bg-red-500/10 px-3 py-2 rounded-lg text-sm transition-colors"
-                                        >
-                                            <LogOut size={15} />
-                                            Sign Out
-                                        </motion.button>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </motion.div>
-
-                {/* MOBILE MENU BUTTON */}
-                <motion.button
-                    whileTap={{ scale: 0.85 }}
-                    onClick={() => setOpen(true)}
-                    className="md:hidden text-white"
-                >
-                    <Menu />
-                </motion.button>
-            </motion.div>
-
-            {/* BACKDROP + SIDEBAR */}
+            {/* DROPDOWN */}
             <AnimatePresence>
-                {open && (
-                    <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 0.5 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black z-40"
-                            onClick={() => setOpen(false)}
-                        />
+              {profileOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-[52px] w-56
+                             bg-[#0f1117] border border-white/[0.08]
+                             rounded-2xl p-2 z-50"
+                >
+                  {/* User Info */}
+                  <div className="px-3 py-2.5 mb-1 border-b border-white/[0.06]">
+                    <p className="text-[13px] font-semibold text-white">
+                      {user?.name || "User"}
+                    </p>
+                    <p className="text-[11px] text-white/35 truncate mt-0.5">
+                      {user?.email || ""}
+                    </p>
+                    <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full
+                                     bg-[#6384ff]/12 border border-[#6384ff]/20
+                                     text-[10px] font-semibold text-[#6384ff] uppercase tracking-wide">
+                      {role}
+                    </span>
+                  </div>
 
-                        <motion.div
-                            initial={{ x: "100%" }}
-                            animate={{ x: 0 }}
-                            exit={{ x: "100%" }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            className="fixed top-0 right-0 h-full w-72 bg-[#080c14] border-l border-white/10 z-50 p-5 text-white"
-                        >
-                            {/* SIDEBAR HEADER */}
-                            <div className="flex justify-between items-center mb-6">
-                                <div className="flex items-center gap-2">
-                                    <svg width="28" height="28" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <rect width="38" height="38" rx="10" fill="url(#grad2)" />
-                                        <path d="M10 14h18M10 19h18M10 24h18" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
-                                        <circle cx="19" cy="10" r="3" fill="#60a5fa" />
-                                        <defs>
-                                            <linearGradient id="grad2" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
-                                                <stop stopColor="#1e3a8a" />
-                                                <stop offset="1" stopColor="#1d4ed8" />
-                                            </linearGradient>
-                                        </defs>
-                                    </svg>
-                                    <h2 className="text-lg font-bold text-blue-400">MultiMart</h2>
-                                </div>
-                                <motion.button
-                                    whileTap={{ scale: 0.8, rotate: 90 }}
-                                    onClick={() => setOpen(false)}
-                                    className="text-white/60 hover:text-white transition"
-                                >
-                                    <X />
-                                </motion.button>
-                            </div>
+              <div onClick={()=>router.push("/profile")}>
+              <DropItem icon={<UserCircle size={14} />} label="My Profile" />
+              </div>
+                  <DropItem icon={<Settings size={14} />} label="Settings" />
 
-                            {/* USER CARD IN SIDEBAR */}
-                            <div className="flex items-center gap-3 bg-white/5 rounded-xl p-3 mb-5">
-                                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold text-sm">
-                                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold truncate">{user?.name || "User"}</p>
-                                    <p className="text-xs text-white/40 truncate">{user?.email || ""}</p>
-                                </div>
-                                <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full capitalize shrink-0">
-                                    {role}
-                                </span>
-                            </div>
+                  <div className="h-px bg-white/[0.06] my-1.5" />
 
-                            {/* SIDEBAR ITEMS */}
-                            <div className="flex flex-col gap-2">
-                                {(role === "user" || role === "vendor") && (
-                                    <SideItem icon={<Home size={18} />} label="Home" delay={0.05} />
-                                )}
-                                {role === "user" && (
-                                    <>
-                                        <SideItem icon={<ShoppingCart size={18} />} label="Cart" delay={0.1} />
-                                        <SideItem icon={<Phone size={18} />} label="Call" delay={0.15} />
-                                    </>
-                                )}
-                                {role === "vendor" && (
-                                    <SideItem icon={<Phone size={18} />} label="Orders" delay={0.1} />
-                                )}
-
-                                <hr className="border-white/10 my-2" />
-
-                                <SideItem icon={<UserCircle size={18} />} label="My Profile" delay={0.2} />
-                                <SideItem icon={<Settings size={18} />} label="Settings" delay={0.25} />
-
-                                <motion.button
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.3 }}
-                                    whileHover={{ x: 5 }}
-                                    onClick={() => signOut()}
-                                    className="flex items-center gap-3 text-red-400 hover:bg-red-500/10 p-2 rounded-lg transition-colors mt-1"
-                                >
-                                    <LogOut size={18} />
-                                    Sign Out
-                                </motion.button>
-                            </div>
-                        </motion.div>
-                    </>
-                )}
+                  <button
+                    onClick={() => signOut()}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[10px]
+                               text-[13px] text-red-400/80 hover:text-red-400
+                               hover:bg-red-500/[0.08] transition-all duration-150"
+                  >
+                    <LogOut size={14} className="text-red-400/50" />
+                    Sign Out
+                  </button>
+                </motion.div>
+              )}
             </AnimatePresence>
-        </>
-    );
+          </div>
+        </div>
+
+        {/* MOBILE BURGER */}
+        <button
+          onClick={() => setOpen(true)}
+          className="md:hidden w-9 h-9 rounded-[10px] bg-white/[0.04] border border-white/[0.07]
+                     flex items-center justify-center text-white/70 hover:text-white transition"
+        >
+          <Menu size={17} />
+        </button>
+      </motion.nav>
+
+      {/* ─── MOBILE SIDEBAR ─── */}
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 32 }}
+              className="fixed top-0 right-0 h-full w-72
+                         bg-[#08090c] border-l border-white/[0.06] z-50 p-5 text-white"
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-[17px] font-semibold">
+                  Multi<span className="text-[#6384ff]">Mart</span>
+                </span>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="w-8 h-8 rounded-[8px] bg-white/[0.04] border border-white/[0.07]
+                             flex items-center justify-center text-white/50 hover:text-white transition"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              {/* User Card */}
+              <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.06]
+                              rounded-xl p-3 mb-5">
+                <div className="w-10 h-10 rounded-[10px] bg-gradient-to-br from-[#6384ff] to-[#a78bfa]
+                                flex items-center justify-center font-bold text-sm text-white flex-shrink-0">
+                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-semibold truncate">{user?.name || "User"}</p>
+                  <p className="text-[11px] text-white/35 truncate">{user?.email || ""}</p>
+                </div>
+                <span className="text-[10px] font-semibold uppercase tracking-wide
+                                 bg-[#6384ff]/12 border border-[#6384ff]/20
+                                 text-[#6384ff] px-2 py-0.5 rounded-full shrink-0">
+                  {role}
+                </span>
+              </div>
+
+              {/* Sidebar Items */}
+              <div className="flex flex-col gap-1">
+                {(role === "user" || role === "vendor") && (
+                  <SideItem icon={<Home size={16} />} label="Home" delay={0.05} />
+                )}
+                {role === "user" && (
+                  <>
+                    <SideItem icon={<ShoppingCart size={16} />} label="Cart" delay={0.08} />
+                    <SideItem icon={<Phone size={16} />} label="Call" delay={0.11} />
+                  </>
+                )}
+                {role === "vendor" && (
+                  <SideItem icon={<Phone size={16} />} label="Orders" delay={0.08} />
+                )}
+
+                <div className="h-px bg-white/[0.06] my-2" />
+
+                <SideItem icon={<UserCircle size={16} />} label="My Profile" delay={0.14} />
+
+                <SideItem icon={<Settings size={16} />} label="Settings" delay={0.17} />
+
+                <motion.button
+                  initial={{ opacity: 0, x: 16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  onClick={() => signOut()}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] mt-1
+                             text-[13px] text-red-400/80 hover:text-red-400
+                             hover:bg-red-500/[0.08] transition-all duration-150"
+                >
+                  <LogOut size={16} />
+                  Sign Out
+                </motion.button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
 }
 
-function NavItem({ icon, label }: any) {
-    return (
-        <motion.div
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 cursor-pointer hover:text-blue-400 transition"
-        >
-            {icon}
-            <span>{label}</span>
-        </motion.div>
-    );
+function NavLink({ icon, label, active }: { icon: React.ReactNode; label: string; active?: boolean }) {
+  return (
+    <div className={`flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-[13px] font-medium
+                     border cursor-pointer transition-all duration-150
+                     ${active
+        ? "text-[#6384ff] bg-[#6384ff]/08 border-[#6384ff]/18"
+        : "text-white/55 border-transparent hover:text-white hover:bg-white/05 hover:border-white/07"
+      }`}>
+      {icon}
+      {label}
+    </div>
+  );
 }
 
-function SideItem({ icon, label, delay = 0 }: any) {
-    return (
-        <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay }}
-            whileHover={{ x: 5 }}
-            className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 cursor-pointer transition-colors"
-        >
-            {icon}
-            <span>{label}</span>
-        </motion.div>
-    );
+function DropItem({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div className="flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-[13px]
+                    text-white/70 hover:text-white hover:bg-white/[0.05]
+                    cursor-pointer transition-all duration-150">
+      <span className="text-white/35">{icon}</span>
+      {label}
+    </div>
+  );
 }
 
-function PopupItem({ icon, label }: any) {
-    return (
-        <motion.div
-            whileHover={{ x: 3 }}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 cursor-pointer text-sm text-white/80 hover:text-white transition-colors"
-        >
-            {icon}
-            <span>{label}</span>
-        </motion.div>
-    );
+function SideItem({ icon, label, delay = 0 }: { icon: React.ReactNode; label: string; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay }}
+      className="flex items-center gap-3 px-3 py-2.5 rounded-[10px]
+                 text-[13px] text-white/65 hover:text-white
+                 hover:bg-white/[0.05] cursor-pointer transition-all duration-150"
+    >
+      {icon}
+      {label}
+    </motion.div>
+  );
 }

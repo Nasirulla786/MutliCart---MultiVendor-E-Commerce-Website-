@@ -51,14 +51,15 @@ const page = () => {
       }
       setLoading(true);
       const res = await axios.post("/api/auth/register", { name, email, password })
-      if (res) {
+      router.push("/")
+
         toast.success(res.data.message);
         setEmail("");
         setName("");
         setPassword("");
         setLoading(false);
-        router.push("/")
-      }
+
+      
 
 
 

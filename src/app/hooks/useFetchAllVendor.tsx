@@ -13,7 +13,8 @@ export default function useFetchAllVendor() {
                 try {
                     const res = await axios.get("/api/admin/all-vendor");
                     if (res) {
-                        dispatch(setAllVendorsData(res.data));
+                        dispatch(setAllVendorsData(res.data.allVendors));
+
 
 
                     }

@@ -35,7 +35,7 @@ export default function EditMobileRole() {
 
             toast.success("Role updated successfully ");
             console.log(res.data);
-            window.location.href = "/";
+      router.push("/");
 
 
 

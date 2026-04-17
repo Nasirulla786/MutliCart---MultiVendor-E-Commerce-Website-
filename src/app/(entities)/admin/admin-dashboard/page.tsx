@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { LayoutDashboard, Store, ShoppingCart, UserCheck, PackageSearch, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import AdminDashBoard from "../admin-components/AdminDashBoard";
+import AllVendors from "../admin-components/AllVendors";
+import ProductRequest from "../admin-components/ProductRequest";
+import UserOrder from "../admin-components/UserOrder";
+import VendorApproved from "../admin-components/VendorApproved";
 
 const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard },
@@ -15,6 +20,19 @@ const menuItems = [
 export default function AdminDash() {
     const [open, setOpen] = useState(false);
     const [active, setActive] = useState("Dashboard");
+
+
+    const Renderpage = () => {
+        switch (active) {
+            case "Dashboard": return <AdminDashBoard />
+            case "Vendors": return <AllVendors />
+            case "Product Request": return <ProductRequest />
+            case "User Orders": return <UserOrder />
+            case "Vendor Approved": return <VendorApproved />
+
+        }
+
+    }
 
     return (
         <div className="flex h-screen bg-[#030712] overflow-hidden">
@@ -48,9 +66,15 @@ export default function AdminDash() {
                                 initial={{ x: -30, opacity: 0 }}
                                 animate={{ x: 0, opacity: 1 }}
                                 transition={{ delay: index * 0.07 }}
-                                onClick={() => setActive(item.name)}
+                                onClick={() =>{setActive(item.name)
+                                
+                                } }
                                 className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors group
                                     ${isActive ? "bg-blue-600/20 text-blue-400" : "text-white/50 hover:text-white hover:bg-white/5"}`}
+
+
+
+
                             >
                                 {isActive && (
                                     <motion.div
@@ -69,7 +93,7 @@ export default function AdminDash() {
                     })}
                 </div>
 
-        
+
 
             </motion.div>
 
@@ -91,7 +115,14 @@ export default function AdminDash() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
                 >
-                    <h1 className="text-white">main area</h1>
+
+                    {
+
+                        Renderpage()
+
+
+                    }
+
                 </motion.div>
             </div>
 

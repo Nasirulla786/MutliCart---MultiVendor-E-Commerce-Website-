@@ -27,7 +27,7 @@ export default function EditShopDetails() {
             })
 
             toast.success("Shop details updated successfully ✅")
-            router.push("/vendors/vendor-dashboard")
+            router.push("/")
 
         } catch (error) {
             toast.error("Something went wrong ❌")
