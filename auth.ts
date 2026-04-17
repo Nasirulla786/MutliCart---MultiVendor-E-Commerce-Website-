@@ -41,6 +41,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     name: alreadyEmail.name,
                     email: alreadyEmail.email,
                     role: alreadyEmail.role,
+
                 }
 
 
@@ -76,6 +77,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 user.id = DbUser._id.toString();
                 user.role = DbUser.role
+
+
             }
 
             return true
@@ -102,6 +105,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 session.user.name = token?.name as string
                 session.user.email = token?.email as string
                 session.user.role = token?.role as string
+
             }
             return session
 

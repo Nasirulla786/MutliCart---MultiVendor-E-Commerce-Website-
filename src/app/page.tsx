@@ -21,6 +21,8 @@ export default async function Home() {
   }
 
 
+  // console.log("this is session",session?.user?.role);
+
   // console.log("this is aha" , user);
   const inComplete = !user.role || !user.phone;
 
