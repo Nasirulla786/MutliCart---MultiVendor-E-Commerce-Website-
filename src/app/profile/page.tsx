@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingBag,
   Pencil,
@@ -13,29 +13,15 @@ import {
   Hash,
   BadgeCheck,
   Clock,
+  Plus,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { IUser } from "@/model/user.model";
 import Image from "next/image";
-import def from "../../../public/def.jpg"
+import def from "../../../public/def.jpg";
+import { useRef, useState } from "react";
 
-// ─── Animations ──────────────────────────────────────────────────────────────
-
-const container = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
-  },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.38, ease: "easeOut" } },
-};
-
-// ─── Button Component ─────────────────────────────────────────────────────────
+// ─── Button ─────────────────────────────────────────────
 
 function ActionBtn({
   icon: Icon,
@@ -48,179 +34,188 @@ function ActionBtn({
 }) {
   return (
     <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.97 }}
-      className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition-colors
-        ${
-          variant === "accent"
-            ? "bg-blue-600/10 border-blue-500/20 text-blue-400 hover:bg-blue-600/16"
-            : "bg-white/3 border-white/6 text-white/60 hover:bg-white/6 hover:text-white/80"
-        }`}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.96 }}
+      className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition
+      ${
+        variant === "accent"
+          ? "bg-blue-600/10 border-blue-500/20 text-blue-400 hover:bg-blue-600/20"
+          : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
+      }`}
     >
-      <div
-        className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0
-          ${variant === "accent" ? "bg-blue-600/15" : "bg-white/5"}`}
-      >
+      <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
         <Icon size={15} />
       </div>
       <span className="text-sm flex-1 text-left font-medium">{label}</span>
-      <ChevronRight size={14} className="text-white/20 flex-shrink-0" />
+      <ChevronRight size={14} className="text-white/30" />
     </motion.button>
   );
 }
 
-// ─── Info Row ─────────────────────────────────────────────────────────────────
+// ─── Info Row ───────────────────────────────────────────
 
-function InfoRow({ icon: Icon, value }: { icon: React.ElementType; value: string }) {
+function InfoRow({
+  icon: Icon,
+  value,
+}: {
+  icon: React.ElementType;
+  value: string;
+}) {
   return (
-    <div className="flex items-center gap-2.5 text-sm text-white/40">
-      <Icon size={13} className="flex-shrink-0" />
+    <div className="flex items-center gap-2 text-sm text-white/50">
+      <Icon size={13} />
       <span className="truncate">{value}</span>
     </div>
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Main Component ─────────────────────────────────────
 
 export default function ProfilePage() {
   const reduxUser = useSelector((state: RootState) => state.users.currentUser);
   //@ts-ignore
-  const details   = reduxUser?.user
+  const details = reduxUser?.user;
 
-
-
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const ImageClick = useRef<HTMLInputElement | null>(null);
 
   if (!details) {
     return (
-      <div className="min-h-screen bg-[#030712] flex items-center justify-center">
-        <div className="flex items-center gap-3 text-white/30 text-sm">
-          <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-          Loading...
-        </div>
+      <div className="min-h-screen bg-[#030712] flex items-center justify-center text-white/40">
+        Loading...
       </div>
     );
   }
 
-  // ─── Derived ─────────────────────────────────────────────────────────────────
-
-  const initials =
-    details?.name
-      ?.split(" ")
-      .map((n: string) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2) || "?";
-
   const role = details?.role || "user";
 
   const roleMeta: any = {
-    user:   { label: "Customer", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
-    admin:  { label: "Admin",    color: "text-purple-400",  bg: "bg-purple-500/10 border-purple-500/20"  },
-    vendor: { label: "Vendor",   color: "text-blue-400",    bg: "bg-blue-500/10 border-blue-500/20"      },
+    user: { label: "Customer", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+    admin: { label: "Admin", color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20" },
+    vendor: { label: "Vendor", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
   };
 
   const meta = roleMeta[role];
 
   const joinedDate = details?.createdAt
-    ? new Date(details.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(details.createdAt).toLocaleDateString("en-IN")
     : null;
 
-  // ─── UI ──────────────────────────────────────────────────────────────────────
-
   return (
-    <div className="min-h-screen bg-[#030712] px-4 py-10 flex justify-center">
-      <motion.div
+    <div className="min-h-screen bg-[#030712] flex justify-center px-4 py-10">
+      <div className="w-full max-w-md flex flex-col gap-3">
 
-        initial="hidden"
-        animate="visible"
-        className="w-full max-w-md flex flex-col gap-3"
-      >
+        {/* Profile Card */}
+        <div className="bg-[#0a0f1e] border border-white/10 rounded-3xl p-6">
+          <div className="flex justify-between mb-5">
+            <Image
+              src={details?.image || def}
+              alt="profile"
+              width={60}
+              height={60}
+              className="rounded-2xl object-cover"
+            />
 
-        {/* ── Profile Card ── */}
-        <motion.div
-
-          className="bg-[#0a0f1e] border border-white/5 rounded-3xl p-6"
-        >
-          {/* Top row: Avatar + Badge */}
-          <div className="flex items-start justify-between mb-5">
-            <div className="relative">
-              {details?.image ? (
-                <Image src={details?.image} className="w-16 h-16 rounded-2xl object-cover border border-white/8"  alt="none" width={50} height={50}/>
-              ) : (
-                <Image src={def} className="w-16 h-16 rounded-2xl object-cover border border-white/8"  alt="none"/>
-              )}
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-[#0a0f1e]" />
-            </div>
-
-            <span className={`text-[11px] font-semibold px-3 py-1 rounded-full border ${meta.bg} ${meta.color}`}>
+            <span className={`text-xs px-3 py-1 flex items-center justify-center rounded-full border ${meta.bg} ${meta.color}`}>
               {meta.label}
             </span>
           </div>
 
-          {/* Name */}
-          <h1 className="text-white text-xl font-bold tracking-tight">{details?.name || "No Name"}</h1>
+          <h1 className="text-white font-bold text-lg">{details?.name}</h1>
 
-          {/* Info rows */}
-          <div className="mt-4 flex flex-col gap-2.5">
-            {details?.email    && <InfoRow icon={Mail}    value={details?.email} />}
-            {details?.phone    && <InfoRow icon={Phone}   value={details?.phone} />}
-            {joinedDate    && <InfoRow icon={Clock}   value={`Joined ${joinedDate}`} />}
+          <div className="mt-4 flex flex-col gap-2">
+            {details?.email && <InfoRow icon={Mail} value={details.email} />}
+            {details?.phone && <InfoRow icon={Phone} value={details.phone} />}
+            {joinedDate && <InfoRow icon={Clock} value={joinedDate} />}
           </div>
-        </motion.div>
+        </div>
 
-        {/* ── Vendor Shop Card ── */}
+        {/* Vendor Card */}
         {role === "vendor" && (
-          <motion.div
-
-            className="bg-[#0a0f1e] border border-white/5 rounded-3xl p-6"
-          >
-            {/* Shop header */}
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-white/30 text-[10px] uppercase tracking-widest">Shop details</p>
-              {details?.verificationStatus === "approved" && (
-                <span className="flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
-                  <BadgeCheck size={11} />
-                  Verified
-                </span>
-              )}
-            </div>
-
-            {/* Shop name big */}
-            <p className="text-white text-base font-semibold mb-4">{details?.shopName}</p>
-
-            {/* Shop details grid */}
-            <div className="flex flex-col gap-2.5">
-              {details?.shopAddress && <InfoRow icon={MapPin} value={details?.shopAddress} />}
-              {details?.gstNumber   && <InfoRow icon={Hash}   value={`GST: ${details?.gstNumber}`} />}
-            </div>
-          </motion.div>
+          <div className="bg-[#0a0f1e] border border-white/10 rounded-3xl p-6">
+            <p className="text-white text-sm mb-2">{details?.shopName}</p>
+            {details?.shopAddress && <InfoRow icon={MapPin} value={details.shopAddress} />}
+            {details?.gstNumber && <InfoRow icon={Hash} value={details.gstNumber} />}
+          </div>
         )}
 
-        {/* ── Actions ── */}
-        <motion.div className="flex flex-col gap-2">
-          {role === "user" && (
-            <>
-              <ActionBtn icon={ShoppingBag} label="Orders"       variant="accent" />
-              <ActionBtn icon={Pencil}      label="Edit Profile" />
-            </>
-          )}
+        {/* Actions */}
+        <div className="flex flex-col gap-2">
+          <div onClick={() => setEditProfileOpen((prev) => !prev)}>
+            <ActionBtn icon={Pencil} label="Edit Profile" variant="accent" />
+          </div>
 
-          {role === "admin" && (
-            <ActionBtn icon={Users} label="Manage Vendors" variant="accent" />
-          )}
+          {role === "user" && <ActionBtn icon={ShoppingBag} label="Orders" />}
+          {role === "admin" && <ActionBtn icon={Users} label="Manage Vendors" />}
+          {role === "vendor" && <ActionBtn icon={Store} label="Shop Settings" />}
 
-          {role === "vendor" && (
-            <>
-              <ActionBtn icon={Pencil} label="Edit Profile"    variant="accent" />
-              <ActionBtn icon={Store}  label="Shop Settings" />
-            </>
-          )}
-        </motion.div>
+          {/* ─── EDIT PROFILE UI ─── */}
+          <AnimatePresence>
+            {editProfileOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="mt-3 bg-[#0f172a] border border-white/10 rounded-2xl p-5 flex flex-col gap-4"
+              >
+                <div className="flex justify-between">
+                  <h2 className="text-white text-sm">Edit Profile</h2>
+                  <button onClick={() => setEditProfileOpen(false)} className="text-white/40 text-xs">
+                    Close
+                  </button>
+                </div>
 
-      </motion.div>
+                {/* Image Upload */}
+                <div
+                  onClick={() => ImageClick.current?.click()}
+                  className="cursor-pointer w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center"
+                >
+                  {previewImage ? (
+                    <Image src={previewImage} alt="preview" width={60} height={60} className="rounded-xl" />
+                  ) : (
+                    <Plus className="text-white" />
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  hidden
+                  ref={ImageClick}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setPreviewImage(URL.createObjectURL(file));
+                    }
+                  }}
+                />
+
+                {/* Name */}
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter name"
+                  className="px-3 py-2 rounded-lg bg-black text-white border border-white/10"
+                />
+
+                {/* Buttons */}
+                <div className="flex gap-2">
+                  <button className="flex-1 bg-blue-600 py-2 rounded-lg text-white">
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditProfileOpen(false)}
+                    className="flex-1 bg-white/10 py-2 rounded-lg text-white"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   );
 }
