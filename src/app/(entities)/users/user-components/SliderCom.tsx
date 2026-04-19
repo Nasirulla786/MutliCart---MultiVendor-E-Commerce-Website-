@@ -2,7 +2,7 @@
 
 import React from "react";
 
-type Category = {
+export type Category = {
   name: string;
   color: string;
   icon: React.ReactNode;

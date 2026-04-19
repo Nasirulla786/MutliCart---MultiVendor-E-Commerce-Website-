@@ -7,6 +7,9 @@ import { IUser } from "@/model/user.model";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
+import VendorDashboard from "../vendor-components/VendorDashboard";
+import VendorProductPage from "../vendor-components/ProductPage";
+import VendorOrder from "../vendor-components/VendorOrder";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard },
@@ -18,11 +21,26 @@ export default function VendorDash({ user }: { user: IUser }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("Dashboard");
+
+
+
   const [shopName, setShopName] = useState(user.shopName);
   const [shopAddress, setShopAddress] = useState(user.shopAddress);
   const [gstNumber, setGstNumber] = useState(user.gstNumber);
   const [Loading, setLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+
+const  Renderpage = ()=>{
+  switch(active){
+    case "Dashboard" : return <VendorDashboard />
+    case "Products" : return <VendorProductPage/>
+    case "Orders" : return <VendorOrder />
+  }
+
+}
+
+
+
 
   if (!user) return "Loading.....";
 
@@ -260,7 +278,14 @@ export default function VendorDash({ user }: { user: IUser }) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            <h1 className="text-white">main area</h1>
+     
+
+              {
+                Renderpage()
+
+
+              }
+
           </motion.div>
         </div>
 

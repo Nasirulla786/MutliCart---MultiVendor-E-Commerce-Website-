@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
-
 const URL = process.env.MONGODB_URl || "";
-
 if(!URL){
     throw new Error("URl not found");
 }
@@ -15,7 +13,6 @@ if(!cached){
 
     }
 }
-
 
 const ConnectDb = async()=>{
 
