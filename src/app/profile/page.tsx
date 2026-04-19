@@ -15,11 +15,15 @@ import {
   Clock,
   Plus,
 } from "lucide-react";
-import { useSelector } from "react-redux";
-import { RootState } from "../redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../redux/store";
 import Image from "next/image";
 import def from "../../../public/def.jpg";
 import { useRef, useState } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { setCurrentUser } from "../redux/slices/users/userdata";
 
 // ─── Button ─────────────────────────────────────────────
 
@@ -80,7 +84,34 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const ImageClick = useRef<HTMLInputElement | null>(null);
+  const [backendImage , setBackendImage] = useState<File | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
 
+
+
+
+  const handleEditSave = async()=>{
+    try {
+      const formData = new FormData();
+      formData.append("name", name);
+      if(backendImage){
+        formData.append("image", backendImage)
+      }
+
+      const res = await axios.post("/api/edit-profile" , formData );
+     if(res?.status==200){
+      toast.success("Profile Update..");
+      // dispatch(setCurrentUser(res?.data?.updatedUser)
+     }
+     else{
+      toast.error("something went wrong")
+     }
+
+    } catch (error) {
+      console.log("edit profile save", error)
+
+    }
+  }
   if (!details) {
     return (
       <div className="min-h-screen bg-[#030712] flex items-center justify-center text-white/40">
@@ -187,6 +218,8 @@ export default function ProfilePage() {
                     const file = e.target.files?.[0];
                     if (file) {
                       setPreviewImage(URL.createObjectURL(file));
+                      setBackendImage(file)
+
                     }
                   }}
                 />
@@ -201,7 +234,7 @@ export default function ProfilePage() {
 
                 {/* Buttons */}
                 <div className="flex gap-2">
-                  <button className="flex-1 bg-blue-600 py-2 rounded-lg text-white">
+                  <button className="flex-1 bg-blue-600 py-2 rounded-lg text-white" onClick={handleEditSave}>
                     Save
                   </button>
                   <button

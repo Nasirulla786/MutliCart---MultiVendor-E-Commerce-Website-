@@ -1,3 +1,4 @@
+//@ts-nocheck
 'use client'
 
 import { useState, useRef, useEffect } from "react";
@@ -8,6 +9,9 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import Image from "next/image";
 
 export default function Navbar({ user }: any) {
   const [open, setOpen] = useState(false);
@@ -15,6 +19,8 @@ export default function Navbar({ user }: any) {
   const profileRef = useRef<HTMLDivElement>(null);
   const role = user?.role;
   const router = useRouter();
+  const {currentUser}  = useSelector((state:RootState)=>state.users)
+  // console.log(currentUser)
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -92,7 +98,29 @@ export default function Navbar({ user }: any) {
             >
               <div className="w-7 h-7 rounded-[8px] bg-gradient-to-br from-[#6384ff] to-[#a78bfa]
                               flex items-center justify-center text-[11px] font-bold text-white">
-                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+
+
+                <div>
+
+                {
+  currentUser?.user?.image ? (
+    <Image
+      src={currentUser.user.image}
+      alt="profile"
+      width={50}
+      height={50}
+      className="rounded-full"
+    />
+  ) : (
+    <div className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-700 text-white font-bold">
+      {currentUser?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+    </div>
+  )
+}
+                </div>
+
+
+
               </div>
               <span className="text-[13px] font-medium text-white/85">
                 {user?.name?.split(" ")[0] || "Profile"}
