@@ -118,11 +118,11 @@ const ProductApproved = () => {
 
   const handleApprove = async (productId: string) => {
     try {
-      const res = await axios.post("/api/admin/change-verification-product",{productID:activeProductId , status:"approved"});
-      console.log("this is res",res);
+      const res = await axios.post("/api/admin/change-verification-product",{productID:productId , status:"approve"});
+      // console.log("this is res",res);
       const updated = allProductsData?.filter((p:IProduct)=>p?._id!=res.data.product?._id) || [];
       dispatch(setAllProductsData(updated))
-      console.log("this is prodyct", updated)
+      // console.log("this is prodyct", updated)
 
     } catch (error) {
       console.log(error);
@@ -132,9 +132,9 @@ const ProductApproved = () => {
 
   }
 
-  const handleReject = async (vendorId: string) => {
+  const handleReject = async (productId: string) => {
     try {
-      const res = await axios.post("/api/admin/change-verification-product",{productID:activeProductId , status:"rejected" , rejectReason});
+      const res = await axios.post("/api/admin/change-verification-product",{productID:productId , status:"reject" , rejectReason});
       console.log("this is res",res);
       const updated = allProductsData?.filter((p:IProduct)=>p?._id!=res.data.product?._id) || [];
       dispatch(setAllProductsData(updated))

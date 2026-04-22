@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
     }
 
 
-    if (status === "approved") {
-      product.verificationStatus = "approved";
+    if (status === "approve") {
+      product.verificationStatus = "approve";
       product.isApproved = true;
       product.rejectReason = "";
     }

@@ -10,14 +10,21 @@ export default function VendorProductPage() {
   useGetAllProducts();
   const router = useRouter();
 
+
   const products = useSelector((state: RootState) => state.vendors?.allProductsData) || [];
   const currentUser = useSelector((state: RootState) => state.users.currentUser);
+
+
+
+
 
   // ✅ Filter products belonging to current vendor
   const myProducts = products.filter(
     //@ts-ignore
     (p: IProduct) => p.vendor?._id === currentUser?.user?._id
   );
+
+
 
   return (
     <div className="p-5">
@@ -66,10 +73,13 @@ export default function VendorProductPage() {
                     ) : (
                       <span className="text-red-600 font-bold">Disabled</span>
                     )}
+
+
                   </td>
-                  <td className="px-4 py-2 flex gap-2">
-                    <button
-                      onClick={() => router.push(`/vendors/product/${product._id}/edit`)}
+                  <td className="px-4 py-2 flex gap-2 flex-col items-center m-2">
+    <div className="flex  gap-3">
+    <button
+                      onClick={() => router.push(`/vendors/update-product/${product._id}`)}
                       className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
                       Edit
@@ -80,13 +90,16 @@ export default function VendorProductPage() {
                         console.log("Toggle active for", product._id);
                       }}
                       className={`px-3 py-1 rounded ${
-                        product.isActive
+                        product.isApproved
                           ? "bg-red-500 text-white hover:bg-red-600"
                           : "bg-green-500 text-white hover:bg-green-600"
                       }`}
                     >
-                      {product.isActive ? "Disable" : "Enable"}
+                      {product.isApproved? "Enable" : "Disable"}
                     </button>
+    </div>
+
+                    <p className="text-red-500">{product?.rejectReason || ""}</p>
                   </td>
                 </tr>
               ))
