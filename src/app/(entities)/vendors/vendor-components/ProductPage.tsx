@@ -1,111 +1,176 @@
-'use client';
+"use client";
 
 import useGetAllProducts from "@/app/hooks/useAllProducts";
-import { RootState } from "@/app/redux/store";
+import { setAllProductsData } from "@/app/redux/slices/vendors/vendordata";
+import { AppDispatch, RootState } from "@/app/redux/store";
 import { IProduct } from "@/model/product.model";
+import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { motion } from "framer-motion";
+import { IUser } from "@/model/user.model";
 
 export default function VendorProductPage() {
   useGetAllProducts();
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
 
+  const products =
+    useSelector((state: RootState) => state.vendors?.allProductsData) || [];
 
-  const products = useSelector((state: RootState) => state.vendors?.allProductsData) || [];
-  const currentUser = useSelector((state: RootState) => state.users.currentUser);
-
-
-
-
-
-  // ✅ Filter products belonging to current vendor
-  const myProducts = products.filter(
-    //@ts-ignore
-    (p: IProduct) => p.vendor?._id === currentUser?.user?._id
+  const currentUser = useSelector(
+    (state: RootState) => state.users.currentUser,
   );
 
+  // ✅ SAFE FILTER
+  const myProducts = products.filter((p: IProduct) => {
+    const vendorId = typeof p.vendor === "object" ? p.vendor?._id : p.vendor;
+    //@ts-ignore
+    return vendorId?.toString() === currentUser?.user?._id?.toString();
+  });
 
+  // 🚀 OPTIMISTIC UPDATE
+  const handleIsActive = async (id: string, active: boolean) => {
+    const updated = products.map((p: IProduct) =>
+      p._id.toString() === id ? { ...p, isActive: !active } : p,
+    );
+
+    dispatch(setAllProductsData(updated));
+
+    try {
+      await axios.post("/api/vendor/change-isActive", {
+        productId: id,
+        isActive: !active,
+      });
+    } catch (error) {
+      dispatch(setAllProductsData(products)); // ❌ revert
+    }
+  };
 
   return (
-    <div className="p-5">
-      {/* Add Product Button */}
-      <div
-        onClick={() => router.push("/vendors/Add-product")}
-        className="w-[200px] h-[50px] bg-blue-500 text-white flex items-center justify-center rounded-lg cursor-pointer hover:bg-blue-600 transition"
-      >
-        + Add Product
+    <div className="min-h-screen bg-[#030712] text-white p-6">
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold">My Products</h1>
+
+        <button
+          onClick={() => router.push("/vendors/Add-product")}
+          className="bg-blue-600 hover:bg-blue-500 active:scale-95 transition px-5 py-2 rounded-xl"
+        >
+          + Add Product
+        </button>
       </div>
 
-      {/* Product Table */}
-      <div className="mt-5 overflow-x-auto">
-        <table className="min-w-full border border-gray-200 rounded-lg shadow">
-          <thead className="bg-gray-100">
+      {/* TABLE */}
+      <div className="overflow-hidden rounded-2xl border border-white/10">
+        <table className="w-full text-sm">
+          <thead className="bg-white/5 text-white/50">
             <tr>
-              <th className="px-4 py-2 text-left">Image</th>
-              <th className="px-4 py-2 text-left">Title</th>
-              <th className="px-4 py-2 text-left">Price</th>
-              <th className="px-4 py-2 text-left">Status</th>
-              <th className="px-4 py-2 text-left">Active</th>
-              <th className="px-4 py-2 text-left">Actions</th>
+              <th className="p-3 text-left">Product</th>
+              <th className="p-3 text-center">Price</th>
+              <th className="p-3 text-center">Status</th>
+              <th className="p-3 text-center">Active</th>
+              <th className="p-3 text-center">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {myProducts.length > 0 ? (
-              myProducts.map((product: IProduct , i) => (
-                <tr key={i} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2">
+              myProducts.map((product: IProduct) => (
+                <motion.tr
+                  key={product._id.toString()}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="border-t border-white/10 hover:bg-white/5 transition"
+                >
+                  {/* PRODUCT */}
+                  <td className="p-3 flex items-center gap-3">
                     <img
                       src={product.image1}
-                      alt={product.title}
-                      className="w-16 h-16 object-cover rounded"
+                      className="w-14 h-14 object-cover rounded-lg"
                     />
+                    <div>
+                      <p className="font-medium">{product.title}</p>
+                      <p className="text-xs text-white/40">
+                        {product.category}
+                      </p>
+                    </div>
                   </td>
-                  <td className="px-4 py-2">{product.title}</td>
-                  <td className="px-4 py-2 font-semibold text-green-600">
+
+                  {/* PRICE */}
+                  <td className="text-center text-green-400 font-semibold">
                     ₹{product.price}
                   </td>
-                  <td className="px-4 py-2">
-                    {product.verificationStatus || "pending"}
-                  </td>
-                  <td className="px-4 py-2">
-                    {product.isActive ? (
-                      <span className="text-green-600 font-bold">Enabled</span>
-                    ) : (
-                      <span className="text-red-600 font-bold">Disabled</span>
-                    )}
 
-
+                  {/* STATUS */}
+                  <td className="text-center">
+                    <span className="text-xs px-2 py-1 rounded-lg bg-yellow-500/20 text-yellow-300">
+                      {product.verificationStatus}
+                    </span>
                   </td>
-                  <td className="px-4 py-2 flex gap-2 flex-col items-center m-2">
-    <div className="flex  gap-3">
-    <button
-                      onClick={() => router.push(`/vendors/update-product/${product._id}`)}
-                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+
+                  {/* TOGGLE */}
+                  <td className="text-center">
+                    <div
+                      onClick={() =>
+                        handleIsActive(
+                          product._id.toString(),
+                          product.isActive as boolean,
+                        )
+                      }
+                      className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-all duration-300 ${
+                        product.isActive
+                          ? "bg-green-500 justify-end"
+                          : "bg-gray-500 justify-start"
+                      }`}
+                    >
+                      <motion.div
+                        layout
+                        transition={{
+                          type: "spring",
+                          stiffness: 500,
+                          damping: 30,
+                        }}
+                        className="w-4 h-4 bg-white rounded-full shadow"
+                      />
+                    </div>
+                  </td>
+
+                  {/* ACTIONS */}
+                  <td className="text-center flex gap-2 justify-center -top-5 relative w-[50%] flex-col">
+                    {/* EDIT */}
+                    <button
+                      onClick={() =>
+                        router.push(`/vendors/update-product/${product._id}`)
+                      }
+                      className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-500 active:scale-95 transition rounded-lg"
                     >
                       Edit
                     </button>
+
+                    {/* ENABLE / DISABLE */}
                     <button
-                      onClick={() => {
-                        // TODO: dispatch action to toggle product active status
-                        console.log("Toggle active for", product._id);
-                      }}
-                      className={`px-3 py-1 rounded ${
-                        product.isApproved
-                          ? "bg-red-500 text-white hover:bg-red-600"
-                          : "bg-green-500 text-white hover:bg-green-600"
+                      onClick={() =>
+                        handleIsActive(
+                          product._id.toString(),
+                          product.isActive as boolean,
+                        )
+                      }
+                      className={`px-3 py-1 text-xs rounded-lg transition active:scale-95 ${
+                        product.isActive
+                          ? "bg-red-500 hover:bg-red-600"
+                          : "bg-green-500 hover:bg-green-600"
                       }`}
                     >
-                      {product.isApproved? "Enable" : "Disable"}
+                      {product.isActive ? "Disable" : "Enable"}
                     </button>
-    </div>
-
-                    <p className="text-red-500">{product?.rejectReason || ""}</p>
                   </td>
-                </tr>
+                </motion.tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
+                <td colSpan={5} className="text-center py-6 text-white/40">
                   No products found
                 </td>
               </tr>

@@ -207,7 +207,6 @@ export default function UpdateProductPage() {
       else if (preview4) formData.append("existingImage4", preview4);
 
       const res = await axios.put(`/api/vendor/update-product-page/${id}`, formData);
-      console.log("this is res",res);
       toast.success("Product updated successfully!");
       router.back();
     } catch (err) {
