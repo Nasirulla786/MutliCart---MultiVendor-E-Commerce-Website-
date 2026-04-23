@@ -8,10 +8,18 @@ import img2 from "../../../../../public/gaming.png"
 import img3 from "../../../../../public/phone.png"
 import { div } from "framer-motion/client"
 import SliderCom from "../user-components/SliderCom"
+import { useSelector } from "react-redux"
+import { RootState } from "@/app/redux/store"
+import { IProduct } from "@/model/product.model"
+import ProductCart from "../user-components/ProductCart"
+import { useRouter } from "next/navigation"
 
 export default function UserDash() {
 
     const [current, setCurrent] = useState(0)
+    const { allProductsData } = useSelector((state: RootState) => state.vendors);
+    const approveProducts = allProductsData.filter((item: IProduct) => item.isActive == true && item.isApproved == true) || []
+    // console.log("my approve products", allProductsData)
 
 
 
@@ -48,6 +56,8 @@ export default function UserDash() {
 
         return () => clearInterval(interval)
     }, [])
+
+    const router = useRouter();
 
     return (
 
@@ -137,6 +147,37 @@ export default function UserDash() {
             <div className="w-[95%] ml-5 mt-4">
                 <SliderCom />
             </div>
+
+
+
+            {/* map all products */}
+      {/* 🔥 Products Section — ONLY THIS BLOCK CHANGED */}
+<div className="w-[95%] ml-5 mt-6 pb-10">
+
+  {approveProducts.length === 0 ? (
+    <div className="text-center py-16 text-gray-400">
+      <p className="text-4xl mb-3">📦</p>
+      <p className="text-base font-medium">No Products Found</p>
+    </div>
+  ) : (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {approveProducts.map((item: IProduct, index: number) => (
+        <motion.div
+          key={item._id.toString()}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.06, duration: 0.35 }}
+          onClick={()=>router.push("/users/viewProduct/" + item?._id.toString())}
+        >
+          <ProductCart
+            product={item}
+          />
+        </motion.div>
+      ))}
+    </div>
+  )}
+
+</div>
 
 
         </div>
