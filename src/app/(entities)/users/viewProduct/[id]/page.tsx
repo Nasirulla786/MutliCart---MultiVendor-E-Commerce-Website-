@@ -4,9 +4,10 @@ import { useParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/redux/store";
 import { IProduct } from "@/model/product.model";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import axios from "axios";
 
 const ProductDetailPage = () => {
   const params = useParams();
@@ -16,29 +17,33 @@ const ProductDetailPage = () => {
 
   const product = allProductsData.find(
     (p: IProduct) => p._id?.toString() === id
-  ) as IProduct | undefined;;
+  ) as IProduct | undefined;
 
   const [activeImg, setActiveImg] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [wishlist, setWishlist] = useState(false);
   const [added, setAdded] = useState(false);
+
+  // REVIEW STATES
   const [reviewRating, setReviewRating] = useState<number>(0);
-const [reviewComment, setReviewComment] = useState<string>("");
-const [reviewImage, setReviewImage] = useState<File | null>(null);
-const [reviewPreviewImagePreview, setReviewPreviewImage] = useState<string | null>(null);
-  const imageCLick = useRef<HTMLInputElement>(null)
+  const [reviewComment, setReviewComment] = useState<string>("");
+  const [reviewImage, setReviewImage] = useState<File | null>(null);
+  const [reviewPreviewImage, setReviewPreviewImage] = useState<string | null>(null);
+  const [currentReviews, setCurrentReviews] = useState<any[]>([]);
 
+  const imageClick = useRef<HTMLInputElement>(null);
 
+  // LOAD REVIEWS INITIALLY
+  useEffect(() => {
+    if (product?.reviews) {
+      setCurrentReviews(product.reviews);
+    }
+  }, [product]);
 
   if (!product) {
-    return (
-      <div className="text-center mt-20 text-gray-400">
-        Product not found
-      </div>
-    );
+    return <div className="text-center mt-20 text-gray-400">Product not found</div>;
   }
 
-  // ✅ Always string[]
   const images: string[] = [
     product.image1,
     product.image2,
@@ -51,21 +56,50 @@ const [reviewPreviewImagePreview, setReviewPreviewImage] = useState<string | nul
     setTimeout(() => setAdded(false), 1500);
   };
 
+  // ✅ REVIEW SUBMIT
+  const handleReview = async () => {
+    try {
+      if (!reviewRating) return alert("Select rating");
+      if (!reviewComment) return alert("Write comment");
+
+      const formData = new FormData();
+      formData.append("id", id as string);
+      formData.append("comment", reviewComment);
+      formData.append("rating", reviewRating.toString());
+
+      if (reviewImage) {
+        formData.append("image", reviewImage);
+      }
+
+      const res = await axios.post("/api/user/add-review", formData);
+
+      const updatedProduct = res.data.product;
+
+      setCurrentReviews(updatedProduct.reviews || []);
+
+      // reset
+      setReviewRating(0);
+      setReviewComment("");
+      setReviewImage(null);
+      setReviewPreviewImage(null);
+
+    } catch (err: any) {
+      console.log(err);
+      alert(err.message);
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen py-6">
       <div className="max-w-6xl mx-auto px-4">
 
+        {/* PRODUCT SECTION */}
         <div className="grid md:grid-cols-2 gap-8">
 
-          {/* LEFT */}
+          {/* LEFT IMAGE */}
           <div>
             <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-white">
-              <Image
-                src={images[activeImg] ?? "/fallback.png"}
-                alt="product"
-                fill
-                className="object-cover"
-              />
+              <Image src={images[activeImg] ?? "/fallback.png"} alt="" fill className="object-cover" />
 
               <button
                 onClick={() => setWishlist(!wishlist)}
@@ -73,24 +107,12 @@ const [reviewPreviewImagePreview, setReviewPreviewImage] = useState<string | nul
               >
                 {wishlist ? "❤️" : "🤍"}
               </button>
-
-              {product.stock === 0 && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold">
-                  Out of Stock
-                </div>
-              )}
             </div>
 
             <div className="flex gap-2 mt-3">
               {images.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveImg(i)}
-                  className={`w-16 h-16 rounded-lg overflow-hidden border ${
-                    activeImg === i ? "border-indigo-500" : ""
-                  }`}
-                >
-                  <Image src={img} alt="" width={64} height={64} />
+                <button key={i} onClick={() => setActiveImg(i)}>
+                  <Image src={img} alt="" width={60} height={60} />
                 </button>
               ))}
             </div>
@@ -99,66 +121,21 @@ const [reviewPreviewImagePreview, setReviewPreviewImage] = useState<string | nul
           {/* RIGHT */}
           <div>
             <h1 className="text-2xl font-bold">{product.title}</h1>
-
-            <p className="text-gray-500 text-sm mt-1">
-              {product.description}
-            </p>
+            <p className="text-gray-500 mt-2">{product.description}</p>
 
             <p className="text-3xl font-bold text-indigo-600 mt-3">
               ₹{Number(product.price).toLocaleString()}
             </p>
 
-            <div className="flex gap-2 mt-2 flex-wrap">
-              {product.freeDelivery && (
-                <span className="text-xs bg-green-100 px-2 py-1 rounded">
-                  Free Delivery
-                </span>
-              )}
-              {product.payOnDelivery && (
-                <span className="text-xs bg-blue-100 px-2 py-1 rounded">
-                  COD
-                </span>
-              )}
-            </div>
-
-            {(product.sizes ?? []).length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm mb-2">Select Size</p>
-                <div className="flex gap-2">
-                  {(product.sizes ?? []).map((s: string) => (
-                    <button
-                      key={s}
-                      onClick={() => setSelectedSize(s)}
-                      className={`px-3 py-1 border rounded ${
-                        selectedSize === s
-                          ? "border-indigo-500 text-indigo-600"
-                          : ""
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <p className="mt-4 text-sm font-semibold">
-              {product.stock > 0 ? "In Stock" : "Out of Stock"}
-            </p>
-
             <div className="flex gap-3 mt-5">
-              <button
-                onClick={() => setWishlist(!wishlist)}
-                className="flex-1 border py-2 rounded"
-              >
-                {wishlist ? "❤️ Wishlisted" : "🤍 Wishlist"}
+              <button onClick={() => setWishlist(!wishlist)} className="flex-1 border py-2 rounded">
+                Wishlist
               </button>
 
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={handleAddToCart}
-                disabled={product.stock === 0}
-                className="flex-1 bg-indigo-600 text-white py-2 rounded disabled:bg-gray-400"
+                className="flex-1 bg-indigo-600 text-white py-2 rounded"
               >
                 {added ? "✓ Added" : "Add to Cart"}
               </motion.button>
@@ -166,62 +143,83 @@ const [reviewPreviewImagePreview, setReviewPreviewImage] = useState<string | nul
           </div>
         </div>
 
-        {/* REVIEW PLACEHOLDER */}
-       <div className="mt-10 bg-white rounded-xl p-6 border">
-  <h2 className="text-lg font-bold mb-4">Write Review</h2>
+        {/* WRITE REVIEW */}
+        <div className="mt-10 bg-white p-6 rounded-xl">
+          <h2 className="font-bold mb-3">Write Review</h2>
 
-  {/* ⭐ Stars */}
-  <div className="flex gap-1 mb-3">
-    {[1, 2, 3, 4, 5].map((i) => (
-      <span
-        key={i}
-        onClick={() => setReviewRating(i)}
-        className="cursor-pointer text-xl"
-      >
-        {i <= reviewRating ? "⭐" : "☆"}
-      </span>
-    ))}
-  </div>
+          <div className="flex gap-1 mb-2">
+            {[1,2,3,4,5].map(i => (
+              <span key={i} onClick={()=>setReviewRating(i)}>
+                {i <= reviewRating ? "⭐" : "☆"}
+              </span>
+            ))}
+          </div>
 
-  {/* 📝 Textarea */}
-  <textarea
-    value={reviewComment}
-    onChange={(e) => setReviewComment(e.target.value)}
-    placeholder="Do review..."
-    className="w-full border rounded p-2 text-sm mb-3"
-  />
+          <textarea
+            value={reviewComment}
+            onChange={(e)=>setReviewComment(e.target.value)}
+            className="w-full border p-2 mb-2"
+          />
 
-  {/* 📁 File input */}
-  <input
-    type="file"
-    hidden
-    ref={imageCLick}
-    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+          <input
+            type="file"
+            hidden
+            ref={imageClick}
+            onChange={(e)=>{
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setReviewImage(file);
+              setReviewPreviewImage(URL.createObjectURL(file));
+            }}
+          />
 
-      setReviewPreviewImage(URL.createObjectURL(file));
-      setReviewImage(file);
-    }}
-  />
+          <button onClick={()=>imageClick.current?.click()} className="text-blue-500">
+            Upload Image
+          </button>
 
-  {/* Button */}
-  <div
-    onClick={() => imageCLick.current?.click()}
-    className="cursor-pointer text-sm text-blue-600"
-  >
-    Choose file
-  </div>
+          {reviewPreviewImage && (
+            <img src={reviewPreviewImage} className="w-20 mt-2" />
+          )}
 
-  {/* Preview */}
-  {reviewPreviewImagePreview && (
-    <img
-      src={reviewPreviewImagePreview}
-      alt="preview"
-      className="mt-3 w-24 h-24 object-cover rounded"
-    />
-  )}
-</div>
+          <button
+            onClick={handleReview}
+            className="mt-3 bg-indigo-600 text-white px-4 py-2 rounded"
+          >
+            Submit Review
+          </button>
+        </div>
+
+        {/* SHOW REVIEWS */}
+        <div className="mt-10 bg-white p-6 rounded-xl">
+          <h2 className="text-xl font-bold mb-4">Customer Reviews</h2>
+
+          {currentReviews.length === 0 && (
+            <p className="text-gray-400">No reviews yet</p>
+          )}
+
+          {currentReviews.map((rev, i) => (
+            <div key={i} className="border-b py-4">
+              <div className="flex justify-between">
+                <p className="font-semibold">
+                  {rev?.user?.name || "User"}
+                </p>
+                <span>{"⭐".repeat(rev.rating)}</span>
+              </div>
+
+              <p className="text-gray-600 text-sm mt-1">
+                {rev.comment}
+              </p>
+
+              {rev.image && (
+                <img src={rev.image} className="w-20 mt-2 rounded" />
+              )}
+
+              <p className="text-xs text-gray-400 mt-1">
+                {["2 days ago","1 week ago","3 hours ago"][i % 3]}
+              </p>
+            </div>
+          ))}
+        </div>
 
       </div>
     </div>
