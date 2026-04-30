@@ -42,7 +42,7 @@ export  async function POST(req:NextRequest){
     } catch (error) {
         console.log("Edit profile api error", error);
         return NextResponse.json(
-            { message: "Internal server erorr" },
+            { message: "Internal server error" },
             { status: 500 }
         )
 

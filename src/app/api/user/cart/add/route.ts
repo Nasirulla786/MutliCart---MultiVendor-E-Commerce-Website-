@@ -26,13 +26,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const ExistProduct = user?.cart?.find((item:any)=> item.product.toString() === productId );
+    const ExistProduct = user?.cart?.find((item:any)=> item.product.toString() === productId.toString() );
     if(ExistProduct){
         ExistProduct.quantity =   ExistProduct.quantity + quantity
     }
     else{
-
-                 user.cart.push({product:productId , quantity})
+     user.cart.push({product:productId , quantity})
 
 
 
