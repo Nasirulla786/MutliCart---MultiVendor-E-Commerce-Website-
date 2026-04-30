@@ -16,18 +16,10 @@ export async function GET() {
 
     const user = await User.findOne({
       email: session.user?.email,
-    }).select("-password");
+    }).select("-password").populate("cart.product");
 
-    const product = await Product.find({ _id: user?._id })
-      .select("-password")
-      .populate("cart.product"); // ✅ important
 
-    if (!product) {
-      return NextResponse.json(
-        { message: "Product Not Found" },
-        { status: 404 },
-      );
-    }
+
     return NextResponse.json({
       cart: user.cart, // ✅ correct data
     });

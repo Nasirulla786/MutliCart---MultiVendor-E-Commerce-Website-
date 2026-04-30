@@ -76,14 +76,14 @@ export default function Navbar({ user }: any) {
 
           {/* Cart */}
           {role === "user" && (
-            <button className="relative w-9 h-9 rounded-[10px]
+            <button onClick={()=>router.push("/cart")} className="relative w-9 h-9 rounded-[10px] cursor-pointer
                                bg-white/[0.04] border border-white/[0.07]
                                flex items-center justify-center text-white/60
                                hover:bg-white/[0.08] hover:text-white transition-all duration-150">
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#6384ff] rounded-full
                                text-[9px] font-bold text-white flex items-center justify-center
-                               border-2 border-[#08090c]">3</span>
-              <ShoppingCart size={15} />
+                               border-2 border-[#08090c]">{user?.cart.length}</span>
+              <ShoppingCart size={15}  />
             </button>
           )}
 

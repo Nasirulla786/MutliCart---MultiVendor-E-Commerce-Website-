@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const ExistProduct = user?.cart?.product?.find((item:any)=> item.product.toString() === productId );
+    const ExistProduct = user?.cart?.find((item:any)=> item.product.toString() === productId );
     if(ExistProduct){
         ExistProduct.quantity =   ExistProduct.quantity + quantity
     }
