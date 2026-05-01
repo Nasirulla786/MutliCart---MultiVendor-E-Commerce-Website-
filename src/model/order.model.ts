@@ -14,6 +14,8 @@ export interface IOrder extends Document {
   serviceCharge: number;
   totalAmount: number;
 
+  productVendor:mongoose.Types.ObjectId
+
   paymentMethod: "cod" | "stripe";
 
   orderStatus:
@@ -46,6 +48,7 @@ export interface IOrder extends Document {
   deliveryDate?: Date;
   deliveryOTP?: string;
   OTPExpires?: Date;
+  orderDate?:Date
 
   createdAt: Date;
   updatedAt: Date;
@@ -69,7 +72,7 @@ const orderSchema = new Schema<IOrder>(
           type: Number,
           required: true,
         },
-      
+
       },
     ],
 
@@ -78,6 +81,14 @@ const orderSchema = new Schema<IOrder>(
       ref: "User",
       required: true,
       index: true, // 🔥 faster queries
+    },
+    productVendor:{
+         type: Schema.Types.ObjectId,
+          ref: "User",
+             required: true,
+      index: true, // 🔥 faster queries
+
+
     },
 
     productTotal: {
@@ -147,6 +158,7 @@ const orderSchema = new Schema<IOrder>(
     },
 
     deliveryDate: Date,
+    orderDate:Date,
 
     deliveryOTP: {
       type: String,

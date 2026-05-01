@@ -131,7 +131,7 @@ const Page = () => {
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        onClick={() => router.push(`/checkout/${item?._id}`)}
+                                        onClick={() => router.push(`/checkout/${item.product._id}`)}
                                         className="mt-4 bg-blue-600 hover:bg-blue-700 py-2 rounded-lg font-semibold transition"
                                     >
                                         Checkout

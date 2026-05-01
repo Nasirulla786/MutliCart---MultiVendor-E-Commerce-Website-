@@ -12,10 +12,7 @@ export async function POST(req: NextRequest) {
     // ✅ AUTH CHECK
     const session = await auth();
     if (!session) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 400 });
     }
 
     const userId = session.user?.id;
@@ -25,65 +22,47 @@ export async function POST(req: NextRequest) {
       productId,
       quantity,
       address,
-      amount,
       deliveryCharge,
       serviceCharge,
     } = await req.json();
 
-
-    // console.log(  productId,
-    //   quantity,
-    //   address,
-    //   amount,
-    //   deliveryCharge,
-    //   serviceCharge,);
-
-
     // ✅ BASIC VALIDATION
-    if (!productId || !quantity || !address) {
+    if (!address) {
       return NextResponse.json(
         { message: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // ✅ FETCH USER
     const user = await User.findById(userId);
     if (!user) {
-      return NextResponse.json(
-        { message: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    // console.log(user);
-
-//     console.log(productId)
-// console.log(user.cart)
-
-
-    // ✅ FIND ITEM IN CART
     const cartItem = user?.cart.find(
       (item: any) =>
-        item.product.toString() === productId.toString()
+        (item.product._id?.toString() || item.product.toString()) ===
+        productId.toString(),
     );
-
-
-    // console.log(cartItem)
 
     if (!cartItem) {
       return NextResponse.json(
         { message: "Item not found in cart" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
+
+
+
+
     // ✅ FETCH PRODUCT
-    const product = await Product.findById(productId);
+    const product = await Product.findById(productId).populate("vendor" ,"name email  shopName shopAddress");
     if (!product) {
       return NextResponse.json(
         { message: "Product not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -91,7 +70,7 @@ export async function POST(req: NextRequest) {
     if (product.stock < quantity) {
       return NextResponse.json(
         { message: "Insufficient stock" },
-        { status: 400 }
+        { status: 401 },
       );
     }
 
@@ -118,6 +97,7 @@ export async function POST(req: NextRequest) {
       orderStatus: "pending",
       returnAmount: 0,
       address,
+
     });
 
     // ✅ UPDATE STOCK
@@ -128,7 +108,8 @@ export async function POST(req: NextRequest) {
     // ✅ REMOVE FROM CART
     user.cart = user.cart.filter(
       (item: any) =>
-        item.product.toString() !== productId.toString()
+        (item.product._id?.toString() || item.product.toString()) !==
+        productId.toString(),
     );
 
     // ✅ ADD ORDER TO USER
@@ -142,10 +123,12 @@ export async function POST(req: NextRequest) {
         message: "Order placed successfully",
         orderId: order._id,
       },
-      { status: 200 }
+      { status: 200 },
     );
-  } catch (error) {
-    console.log("Order API error", error);
+  } catch (err) {
+    console.log(err);
+
+
 
     return NextResponse.json(
       { message: "Internal server error" },

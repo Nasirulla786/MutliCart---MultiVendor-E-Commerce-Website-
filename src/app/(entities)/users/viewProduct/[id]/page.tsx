@@ -59,8 +59,16 @@ const ProductDetailPage = () => {
   ].filter((img): img is string => Boolean(img));
 
   const handleAddToCart = async () => {
-    const res = await axios.post("/api/user/cart/add" ,{productId :id ,quantity})
+
+
+    if (product?.stock < quantity) {
+      return toast.error("insufficent stock")
+
+    }
+    const res = await axios.post("/api/user/cart/add", { productId: id, quantity })
     setAdded(true);
+    // console.log("thi sis res",res);
+
     toast.success("Item added check in your cart")
     setTimeout(() => setAdded(false), 1500);
   };
@@ -123,7 +131,7 @@ const ProductDetailPage = () => {
                   key={i}
                   onClick={() => setActiveImg(i)}
                   className={`rounded-lg border-2 ${activeImg === i ? 'border-[#e0e0e0]' : 'border-[#333]'} overflow-hidden`}
-                  aria-label={`Show image ${i+1}`}
+                  aria-label={`Show image ${i + 1}`}
                 >
                   <Image src={img} alt="thumb" width={56} height={56} className="object-cover" />
                 </button>
@@ -148,7 +156,7 @@ const ProductDetailPage = () => {
             <div className="mt-3">
               <div className="text-sm mb-1 text-[#aaa]">SELECT SIZE</div>
               <div className="flex gap-2">
-                {["S","M","L","XL","XXL"].map(size => (
+                {["S", "M", "L", "XL", "XXL"].map(size => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
@@ -161,9 +169,9 @@ const ProductDetailPage = () => {
             <div className="flex items-center gap-3 mt-2">
               <span className="text-sm text-[#aaa]">QUANTITY</span>
               <div className="flex items-center border border-[#333] rounded">
-                <button onClick={()=>setQuantity(q=>q>1?q-1:1)} className="px-2 py-1">-</button>
+                <button onClick={() => setQuantity(q => q > 1 ? q - 1 : 1)} className="px-2 py-1">-</button>
                 <span className="px-3 py-1 min-w-[24px] text-center">{quantity}</span>
-                <button onClick={()=>setQuantity(q=>q+1)} className="px-2 py-1">+</button>
+                <button onClick={() => setQuantity(q => q + 1)} className="px-2 py-1">+</button>
               </div>
             </div>
             {/* Action Buttons */}
@@ -175,8 +183,8 @@ const ProductDetailPage = () => {
               >
                 {added ? "✓ Added to Cart" : "Add to Cart"}
               </motion.button>
-              <button className="flex-1 bg-[#232323] border border-[#90ee90] text-[#90ee90] flex ite' justify-center gap-2 font-bold py-2 rounded shadow hover:bg-[#333] transition" onClick={()=>router.push("/cart")}>
-               <ShoppingBag /> <span>Check Cart</span>
+              <button className="flex-1 bg-[#232323] border border-[#90ee90] text-[#90ee90] flex ite' justify-center gap-2 font-bold py-2 rounded shadow hover:bg-[#333] transition" onClick={() => router.push("/cart")}>
+                <ShoppingBag /> <span>Check Cart</span>
               </button>
             </div>
             <div className="flex gap-2 mt-2">
@@ -198,13 +206,13 @@ const ProductDetailPage = () => {
             </div>
             {/* Rating Breakdown */}
             <div className="flex-[2] flex flex-col gap-2 justify-center">
-              {[5,4,3,2,1].map(star => (
+              {[5, 4, 3, 2, 1].map(star => (
                 <div key={star} className="flex items-center gap-2">
                   <span className="w-6 text-sm text-[#aaa]">{star}★</span>
                   <div className="flex-1 h-2 bg-[#333] rounded">
-                    <div className={`h-2 rounded bg-yellow-400`} style={{width: `${star*20/5}%`}}></div>
+                    <div className={`h-2 rounded bg-yellow-400`} style={{ width: `${star * 20 / 5}%` }}></div>
                   </div>
-                  <span className="w-8 text-xs text-[#aaa]">{star*20}</span>
+                  <span className="w-8 text-xs text-[#aaa]">{star * 20}</span>
                 </div>
               ))}
             </div>
@@ -215,10 +223,10 @@ const ProductDetailPage = () => {
         <div className="mt-10 bg-[#232323] p-6 rounded-2xl shadow-lg">
           <h2 className="font-bold mb-3 text-lg">Write a Review</h2>
           <div className="flex gap-2 mb-2">
-            {[1,2,3,4,5].map(i => (
+            {[1, 2, 3, 4, 5].map(i => (
               <span
                 key={i}
-                onClick={()=>setReviewRating(i)}
+                onClick={() => setReviewRating(i)}
                 className={`cursor-pointer text-2xl ${i <= reviewRating ? 'text-yellow-400' : 'text-[#444]'}`}
               >
                 ★
@@ -227,7 +235,7 @@ const ProductDetailPage = () => {
           </div>
           <textarea
             value={reviewComment}
-            onChange={(e)=>setReviewComment(e.target.value)}
+            onChange={(e) => setReviewComment(e.target.value)}
             className="w-full bg-[#181818] border border-[#333] rounded p-2 mb-2 text-[#e0e0e0]"
             placeholder="Share your experience with this product..."
           />
@@ -236,14 +244,14 @@ const ProductDetailPage = () => {
               type="file"
               hidden
               ref={imageClick}
-              onChange={(e)=>{
+              onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
                 setReviewImage(file);
                 setReviewPreviewImage(URL.createObjectURL(file));
               }}
             />
-            <button onClick={()=>imageClick.current?.click()} className="px-3 py-1 bg-[#333] rounded text-[#e0e0e0] border border-[#444] hover:bg-[#444] transition">Add a photo</button>
+            <button onClick={() => imageClick.current?.click()} className="px-3 py-1 bg-[#333] rounded text-[#e0e0e0] border border-[#444] hover:bg-[#444] transition">Add a photo</button>
             {reviewPreviewImage && (
               <img src={reviewPreviewImage} className="w-16 h-16 object-cover rounded border border-[#333]" />
             )}
@@ -277,7 +285,7 @@ const ProductDetailPage = () => {
                   {rev.image && (
                     <img src={rev.image} className="w-20 mt-2 rounded border border-[#333]" />
                   )}
-                  <p className="text-xs text-[#888] mt-1">{["2 days ago","1 week ago","3 hours ago"][i % 3]}</p>
+                  <p className="text-xs text-[#888] mt-1">{["2 days ago", "1 week ago", "3 hours ago"][i % 3]}</p>
                 </div>
               </div>
             ))}

@@ -27,9 +27,10 @@ const Page = () => {
     const fetchGetProduct = async () => {
       try {
         const res = await axios.get("/api/user/cart/get");
-        const checkOutProduct = res?.data?.cart.find(
-          (p: any) => p._id == id
-        );
+
+        const checkOutProduct = res?.data?.cart.find((p: any) => p.product._id == id);
+          //  console.log(checkOutProduct);
+
         setItem(checkOutProduct);
       } catch (error) {
         console.log(error);
@@ -43,9 +44,9 @@ const Page = () => {
   const deliveryCharge = item?.product?.freeDelivery ? 0 : 50;
 
   const finalTotal =
-    (item?.product?.price || 0) * (item?.quantity || 1) +
-    serviceCharge +
-    deliveryCharge;
+    Number(item?.product?.price) +
+    Number(serviceCharge) +
+    Number(deliveryCharge);
 
   // ✅ PAYMENT HANDLER
   const handlePayment = async () => {
@@ -66,7 +67,6 @@ const Page = () => {
           city,
           pinCode: pin,
         },
-        amount: finalTotal,
         deliveryCharge,
         serviceCharge,
       });
@@ -74,6 +74,7 @@ const Page = () => {
       console.log(res);
 
       alert("Order placed successfully 🎉");
+    
 
       router.push("/orders"); // ✅ redirect after order
     } catch (err) {
@@ -85,25 +86,18 @@ const Page = () => {
   };
 
   if (!item) {
-    return (
-      <div className="text-center text-gray-400 mt-20">
-        Loading...
-      </div>
-    );
+    return <div className="text-center text-gray-400 mt-20">Loading...</div>;
   }
 
   return (
     <div className="bg-[#0f172a] min-h-screen text-white p-4 md:p-8">
-
       <div className="max-w-7xl mx-auto grid lg:grid-cols-3 gap-8">
-
         {/* LEFT SIDE */}
         <motion.div
           initial={{ x: -60, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           className="lg:col-span-2 space-y-6"
         >
-
           {/* PRODUCT */}
           <div className="bg-[#1e293b] p-4 rounded-xl flex gap-4 items-center">
             <div className="w-24 h-24 relative rounded overflow-hidden">
@@ -116,13 +110,9 @@ const Page = () => {
             </div>
 
             <div>
-              <h2 className="font-semibold text-lg">
-                {item.product.title}
-              </h2>
+              <h2 className="font-semibold text-lg">{item.product.title}</h2>
 
-              <p className="text-gray-400 text-sm">
-                Qty: {item.quantity}
-              </p>
+              <p className="text-gray-400 text-sm">Qty: {item.quantity}</p>
 
               <p className="text-blue-400 font-bold mt-1">
                 ₹{item.product.price}
@@ -132,7 +122,6 @@ const Page = () => {
 
           {/* ADDRESS */}
           <div className="bg-[#1e293b] p-6 rounded-xl space-y-4">
-
             <h2 className="font-bold text-lg">Delivery Address</h2>
 
             <input
@@ -171,9 +160,7 @@ const Page = () => {
                 className="p-3 rounded bg-[#0f172a] outline-none"
               />
             </div>
-
           </div>
-
         </motion.div>
 
         {/* RIGHT SIDE */}
@@ -182,10 +169,8 @@ const Page = () => {
           animate={{ x: 0, opacity: 1 }}
           className="space-y-6"
         >
-
           {/* SUMMARY */}
           <div className="bg-[#1e293b] p-6 rounded-xl space-y-3">
-
             <h2 className="font-bold text-lg">Order Summary</h2>
 
             <div className="flex justify-between text-gray-400">
@@ -207,21 +192,16 @@ const Page = () => {
               <span>Total</span>
               <span>₹{finalTotal}</span>
             </div>
-
           </div>
 
           {/* PAYMENT */}
           <div className="bg-[#1e293b] p-6 rounded-xl space-y-4">
-
             <h2 className="font-bold text-lg">Payment Method</h2>
 
             <div className="grid grid-cols-2 gap-3">
-
               <button
                 className={`p-3 rounded ${
-                  selectPayment === "cod"
-                    ? "bg-blue-500"
-                    : "bg-[#0f172a]"
+                  selectPayment === "cod" ? "bg-blue-500" : "bg-[#0f172a]"
                 }`}
                 onClick={() => setSelectPayment("cod")}
               >
@@ -230,15 +210,12 @@ const Page = () => {
 
               <button
                 className={`p-3 rounded ${
-                  selectPayment === "stripe"
-                    ? "bg-blue-500"
-                    : "bg-[#0f172a]"
+                  selectPayment === "stripe" ? "bg-blue-500" : "bg-[#0f172a]"
                 }`}
                 onClick={() => setSelectPayment("stripe")}
               >
                 Stripe
               </button>
-
             </div>
 
             <motion.button
@@ -249,11 +226,8 @@ const Page = () => {
             >
               {loading ? "Processing..." : "Proceed to Pay"}
             </motion.button>
-
           </div>
-
         </motion.div>
-
       </div>
     </div>
   );
