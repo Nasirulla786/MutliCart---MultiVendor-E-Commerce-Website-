@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { IUser } from "./user.model";
 
 export interface IOrder extends Document {
   products: {
@@ -7,7 +8,7 @@ export interface IOrder extends Document {
     price: number;
   }[];
 
-  buyer: mongoose.Types.ObjectId;
+  buyer: IUser;
 
   productTotal: number;
   deliveryCharge: number;
