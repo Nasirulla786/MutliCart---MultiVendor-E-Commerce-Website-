@@ -15,7 +15,7 @@
         const orders = await orderModel
         .find({})
         .populate("buyer", "name email image phone")
-        .populate("products.product.vendor", "name shopName email").populate("products.product")
+        .populate("productVendor", "name shopName email").populate("products.product")
         .sort({ createdAt: -1 });
 
 

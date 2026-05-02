@@ -1,26 +1,31 @@
 "use client";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowBigLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { setAllOrdersData } from "../redux/slices/users/userdata";
+import useGetAllOrders from "../hooks/useAllOrder";
 
 const Page = () => {
+  useGetAllOrders();
   const { allOrdersData, currentUser } = useSelector(
     (state: RootState) => state.users
   );
 
   const [selectOrder, setSelectOrder] = useState<any>(null);
 
-  // ✅ FILTER MY ORDERS
+  // FILTER MY ORDERS
   const myOrders =
     allOrdersData?.filter(
       //@ts-ignore
       (p: any) => p?.buyer?._id === currentUser?.user?._id
     ) || [];
+    console.log("my order",myOrders);
 
-  // ✅ DATE FORMAT
   const formatDate = (date: string) => {
     return new Date(date).toLocaleString("en-IN", {
       day: "2-digit",
@@ -28,12 +33,47 @@ const Page = () => {
       year: "numeric",
     });
   };
+
   const router = useRouter();
+  const dispatch = useDispatch();
+
+  const handleCancel = async (id: string) => {
+    try {
+      await axios.post("/api/order/cancel-order", { orderID: id });
+
+      // ✅ FIXED LOGIC (ONLY TARGET ORDER UPDATE)
+      const updatedData = allOrdersData.map((order: any) =>
+        order?._id.toString() === id
+          ? { ...order, orderStatus: "cancelled" }
+          : order
+      );
+
+      dispatch(setAllOrdersData(updatedData));
+
+      toast.success("Order cancelled");
+
+      // optional cleanup
+      setSelectOrder(null);
+
+    } catch (error: any) {
+      console.log("FULL ERROR:", error);
+
+      if (error.response) {
+        alert(error.response.data.message);
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
+  };
+
+  const handleTracking = () => {
+    alert("work in progress");
+  };
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white p-4 md:p-8">
 
-      <div className="mb-5" onClick={()=>router.push("/cart")}>
+      <div className="mb-5" onClick={() => router.push("/cart")}>
         <ArrowBigLeft />
       </div>
 
@@ -93,32 +133,42 @@ const Page = () => {
                 </td>
 
                 <td className="p-3 text-sm">
-                  {order.isPaid ? (
-                    <span className="text-green-400 font-semibold">
-                      Paid
-                    </span>
-                  ) : (
-                    <span className="text-red-400 font-semibold">
-                      Pending
-                    </span>
-                  )}
+           {order.orderStatus === "cancelled" ? (
+  <span className="text-red-400 font-semibold">Cancelled</span>
+) : order.isPaid ? (
+  <span className="text-green-400 font-semibold">Paid</span>
+) : (
+  <span className="text-gray-400 font-semibold">—</span>
+)}
                 </td>
 
                 <td className="p-3 font-bold text-blue-400">
                   ₹{order.totalAmount}
                 </td>
 
-                <td className="p-3 flex gap-2">
-                  <button
-                    onClick={() => setSelectOrder(order)}
-                    className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm"
-                  >
-                    Details
-                  </button>
+                {/* ✅ FIXED UI */}
+                <td className="p-3 flex gap-2 items-center">
+                  {order.orderStatus === "cancelled" ? (
+                    <span className="text-red-400 font-semibold">
+                      Cancelled
+                    </span>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setSelectOrder(order)}
+                        className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm"
+                      >
+                        Details
+                      </button>
 
-                  <button className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 rounded text-sm">
-                    Track
-                  </button>
+                      <button
+                        className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 rounded text-sm"
+                        onClick={handleTracking}
+                      >
+                        Track
+                      </button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}
@@ -133,7 +183,7 @@ const Page = () => {
         )}
       </div>
 
-      {/* 🔥 MODAL */}
+      {/* MODAL */}
       <AnimatePresence>
         {selectOrder && (
           <motion.div
@@ -146,11 +196,8 @@ const Page = () => {
               initial={{ scale: 0.7, y: 50 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.7, y: 50 }}
-              transition={{ duration: 0.3 }}
               className="bg-[#1e293b] w-[95%] md:w-[600px] rounded-2xl p-6 shadow-xl"
             >
-
-              {/* Header */}
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold text-blue-400">
                   Order Details
@@ -163,19 +210,34 @@ const Page = () => {
                 </button>
               </div>
 
-              {/* Info */}
               <div className="space-y-3 text-sm">
+                <p>
+                  <span className="text-gray-400">Order ID:</span> #
+                  {selectOrder._id.slice(-6)}
+                </p>
 
-                <p><span className="text-gray-400">Order ID:</span> #{selectOrder._id.slice(-6)}</p>
-                <p><span className="text-gray-400">Date:</span> {formatDate(selectOrder.createdAt)}</p>
-                <p><span className="text-gray-400">Vendor:</span> {selectOrder.productVendor?.shopName}</p>
-                <p><span className="text-gray-400">Payment:</span> {selectOrder.paymentMethod}</p>
+                <p>
+                  <span className="text-gray-400">Date:</span>{" "}
+                  {formatDate(selectOrder.createdAt)}
+                </p>
 
-                {/* Products */}
+                <p>
+                  <span className="text-gray-400">Vendor:</span>{" "}
+                  {selectOrder.productVendor?.shopName}
+                </p>
+
+                <p>
+                  <span className="text-gray-400">Payment:</span>{" "}
+                  {selectOrder.paymentMethod}
+                </p>
+
                 <div>
                   <p className="text-gray-400 mb-1">Products:</p>
-                  {selectOrder.products.map((p:any,i:number)=>(
-                    <div key={i} className="flex justify-between border-b border-gray-700 py-1">
+                  {selectOrder.products.map((p: any, i: number) => (
+                    <div
+                      key={i}
+                      className="flex justify-between border-b border-gray-700 py-1"
+                    >
                       <span>{p.product?.title}</span>
                       <span>x{p.quantity}</span>
                     </div>
@@ -187,21 +249,25 @@ const Page = () => {
                 </p>
               </div>
 
-              {/* Actions */}
               <div className="flex gap-3 mt-6">
-                <button className="flex-1 bg-red-600 hover:bg-red-700 py-2 rounded">
+                <button
+                  className="flex-1 bg-red-600 hover:bg-red-700 py-2 rounded"
+                  onClick={() => handleCancel(String(selectOrder?._id))}
+                >
                   Cancel Order
                 </button>
-                <button className="flex-1 bg-yellow-500 hover:bg-yellow-600 py-2 rounded">
+
+                <button
+                  className="flex-1 bg-yellow-500 hover:bg-yellow-600 py-2 rounded"
+                  onClick={handleTracking}
+                >
                   Track Order
                 </button>
               </div>
-
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 };

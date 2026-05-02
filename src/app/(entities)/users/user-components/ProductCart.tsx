@@ -21,7 +21,7 @@ interface Props {
 const ProductCart = ({ product }: Props) => {
   const [wishlist, setWishlist] = useState(false);
   const router = useRouter();
-  console.log("prodffjksjsnd",product)
+
 
   // ⭐ Average Rating
   const avgRating =

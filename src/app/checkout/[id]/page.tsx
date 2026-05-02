@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import fallBack from "../../../../public/def.jpg";
+import toast from "react-hot-toast";
 
 const Page = () => {
   const params = useParams();
@@ -28,8 +29,10 @@ const Page = () => {
       try {
         const res = await axios.get("/api/user/cart/get");
 
-        const checkOutProduct = res?.data?.cart.find((p: any) => p.product._id == id);
-          //  console.log(checkOutProduct);
+        const checkOutProduct = res?.data?.cart.find(
+          (p: any) => p.product._id == id,
+        );
+        //  console.log(checkOutProduct);
 
         setItem(checkOutProduct);
       } catch (error) {
@@ -57,26 +60,46 @@ const Page = () => {
 
       setLoading(true);
 
-      const res = await axios.post("/api/order/create/cod", {
-        productId: item.product._id,
-        quantity: item.quantity,
-        address: {
-          name,
-          phone,
-          address,
-          city,
-          pinCode: pin,
-        },
-        deliveryCharge,
-        serviceCharge,
-      });
+      if (selectPayment == "cod") {
+        const res = await axios.post("/api/order/create/cod", {
+          productId: item.product._id,
+          quantity: item.quantity,
+          address: {
+            name,
+            phone,
+            address,
+            city,
+            pinCode: pin,
+          },
+          deliveryCharge,
+          serviceCharge,
+        });
 
-      console.log(res);
+        alert("Order placed successfully 🎉");
 
-      alert("Order placed successfully 🎉");
-    
+        router.push(`/order-success`); // ✅ redirect after order
+      }
 
-      router.push("/orders"); // ✅ redirect after order
+      if (selectPayment == "stripe") {
+        const res = await axios.post("/api/order/create/online-pay/stripe", {
+          productId: item.product._id,
+          quantity: item.quantity,
+          address: {
+            name,
+            phone,
+            address,
+            city,
+            pinCode: pin,
+          },
+          deliveryCharge,
+          serviceCharge,
+        });
+
+
+
+        window.location.href = res.data.url;// ✅ redirect after order
+      }
+
     } catch (err) {
       console.log(err);
       alert("Order failed");
@@ -200,18 +223,16 @@ const Page = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <button
-                className={`p-3 rounded ${
-                  selectPayment === "cod" ? "bg-blue-500" : "bg-[#0f172a]"
-                }`}
+                className={`p-3 rounded ${selectPayment === "cod" ? "bg-blue-500" : "bg-[#0f172a]"
+                  }`}
                 onClick={() => setSelectPayment("cod")}
               >
                 COD
               </button>
 
               <button
-                className={`p-3 rounded ${
-                  selectPayment === "stripe" ? "bg-blue-500" : "bg-[#0f172a]"
-                }`}
+                className={`p-3 rounded ${selectPayment === "stripe" ? "bg-blue-500" : "bg-[#0f172a]"
+                  }`}
                 onClick={() => setSelectPayment("stripe")}
               >
                 Stripe

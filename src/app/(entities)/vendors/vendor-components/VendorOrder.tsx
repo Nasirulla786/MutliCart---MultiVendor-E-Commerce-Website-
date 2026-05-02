@@ -30,17 +30,22 @@ const tableVariant = {
 
 export default function VendorOrder() {
   useGetAllOrders();
-
   const { allOrdersData, currentUser } = useSelector(
     (state: RootState) => state.users,
   );
 
-  const myOrders =
-    allOrdersData?.filter(
-      (order: IOrder) =>
-        //@ts-ignore
-        order?.productVendor === currentUser?.user?._id,
-    ) || [];
+
+
+const myOrders =
+  allOrdersData?.filter(
+    (order: IOrder) =>
+      //@ts-ignore
+      order?.productVendor?._id?.toString() ===
+      //@ts-ignore
+      currentUser?.user?._id?.toString()
+  ) || [];
+
+
 
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-IN");
@@ -173,10 +178,13 @@ export default function VendorOrder() {
                     <motion.select
                       whileFocus={{ scale: 1.05 }}
                       value={order.orderStatus}
-                      disabled={order.orderStatus === "delivered"}
+                      disabled={
+  order.orderStatus === "delivered" ||
+  order.orderStatus === "cancelled"
+}
                       className={`bg-[#0f172a] border border-gray-600 p-2 rounded-lg w-full
                         ${
-                          order.orderStatus === "delivered"
+                          order.orderStatus === "delivered" ||  order.orderStatus === "cancelled"
                             ? "opacity-50 cursor-not-allowed"
                             : ""
                         }`}
