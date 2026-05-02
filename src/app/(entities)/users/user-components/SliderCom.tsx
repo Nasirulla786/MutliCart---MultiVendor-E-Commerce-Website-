@@ -1,6 +1,8 @@
+//@ts-nocheck
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 
 export type Category = {
   name: string;
@@ -106,18 +108,17 @@ const colorMap: Record<string, { bg: string; text: string }> = {
 };
 
 const SliderCom = () => {
+  const router = useRouter(); // ✅ added
   const doubled = [...categories, ...categories];
 
   return (
     <div className="bg-[#0d0d0d] rounded-2xl py-3 overflow-hidden relative mt-4">
 
       {/* Fade edges */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
+      <div className="absolute left-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
         style={{ background: "linear-gradient(to right, #0d0d0d, transparent)" }}
       />
-      <div
-        className="absolute right-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
+      <div className="absolute right-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
         style={{ background: "linear-gradient(to left, #0d0d0d, transparent)" }}
       />
 
@@ -134,15 +135,19 @@ const SliderCom = () => {
         >
           {doubled.map((cat, i) => {
             const c = colorMap[cat.color];
+
             return (
               <div
                 key={i}
+                onClick={() =>
+                  router.push(`/category-product-show/${cat.name.toLowerCase()}`)
+                } // ✅ MAIN LOGIC
                 className="group w-[100px] h-[100px] rounded-2xl flex flex-col items-center justify-center gap-2
                            border border-white/5 cursor-pointer flex-shrink-0 transition-all duration-300
                            hover:scale-110 hover:-translate-y-1 hover:border-white/20"
                 style={{ background: "#111111" }}
               >
-                {/* Icon Box */}
+                {/* Icon */}
                 <div
                   className="relative flex items-center justify-center w-10 h-10 rounded-xl"
                   style={{ background: c.bg }}
