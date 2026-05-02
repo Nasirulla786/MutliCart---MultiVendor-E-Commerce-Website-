@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
 
     const { orderId, otp } = await req.json();
 
+
     // ✅ validation
     if (!orderId || !otp) {
       return NextResponse.json(
