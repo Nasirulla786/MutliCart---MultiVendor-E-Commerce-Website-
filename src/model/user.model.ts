@@ -24,6 +24,17 @@ export interface IUser {
     quantity: number;
   }[];
 
+  chats: {
+    with: mongoose.Types.ObjectId;
+    message: [
+      {
+        sender: mongoose.Types.ObjectId;
+        text: string;
+        createdAt: Date;
+      },
+    ];
+  }[];
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -55,7 +66,7 @@ const userSchema = new mongoose.Schema<IUser>(
 
     phone: {
       type: String,
-    //   default:"",
+      //   default:"",
     },
 
     shopAddress: {
@@ -115,6 +126,30 @@ const userSchema = new mongoose.Schema<IUser>(
           type: Number,
           default: 1,
         },
+      },
+    ],
+
+    chats: [
+      {
+        with: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        message: [
+          {
+            sender: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "User",
+            },
+            text: {
+              type: String,
+            },
+            createdAt: {
+              type: Date,
+              default: Date.now,
+            },
+          },
+        ],
       },
     ],
   },

@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import Image from "next/image";
+import VendorOrder from "../(entities)/vendors/vendor-components/VendorOrder";
 
 export default function Navbar({ user }: any) {
   const [open, setOpen] = useState(false);
@@ -32,6 +33,9 @@ export default function Navbar({ user }: any) {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  const [activePage, setActivePage] = useState();
+
 
   return (
     <>
@@ -62,6 +66,8 @@ export default function Navbar({ user }: any) {
         {/* DESKTOP LINKS */}
         <div className="hidden md:flex items-center gap-1">
 
+
+
           {/* USER ONLY NAV */}
           {role === "user" && (
             <>
@@ -75,7 +81,7 @@ export default function Navbar({ user }: any) {
 
               <NavLink onClick={() => router.push("/wishlist")} icon={<Heart size={15} />} label="Wishlist" />
 
-              <NavLink icon={<Phone size={15} />} label="Call" />
+              {/* <NavLink icon={<Phone size={15} />} label="Call" /> */}
             </>
           )}
 
@@ -83,10 +89,14 @@ export default function Navbar({ user }: any) {
           {role === "vendor" && (
             <>
               <NavLink icon={<Home size={15} />} label="Dashboard" active />
-              <NavLink icon={<Package size={15} />} label="Orders" />
+                {/* <NavLink icon={<Phone size={15} />} label="Call" /> */}
+
             </>
+
+
           )}
         </div>
+
 
         {/* RIGHT SIDE */}
         <div className="hidden md:flex items-center gap-2">
@@ -106,6 +116,8 @@ export default function Navbar({ user }: any) {
               <ShoppingCart size={15} />
             </button>
           )}
+
+          <NavLink icon={<Phone size={15} />} label="Support" onClick={()=>router.push("/support-page")} />
 
           {/* PROFILE */}
           <div ref={profileRef} className="relative">
@@ -168,9 +180,12 @@ export default function Navbar({ user }: any) {
                   </button>
                 </motion.div>
               )}
+
+
             </AnimatePresence>
           </div>
         </div>
+
 
         {/* MOBILE */}
         <button
