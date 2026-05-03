@@ -21,7 +21,7 @@ export default function Page() {
   console.log(allProductsData);
 
   // 🔥 FIND SHOP
-  const shop :IUser= allVendorsData?.find(
+  const shop :any= allVendorsData?.find(
     (v: any) => String(v._id) === String(shopId)
   );
 

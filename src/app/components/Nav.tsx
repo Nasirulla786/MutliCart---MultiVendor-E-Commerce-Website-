@@ -147,7 +147,7 @@ export default function Navbar({ user }: any) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   className="absolute right-0 top-[52px] w-56
-                             bg-[#0f1117] border rounded-2xl p-2"
+                             bg-[#0f1117] border rounded-2xl p-2 z-10"
                 >
                   <div className="px-3 py-2 border-b">
                     <p className="text-sm">{user?.name}</p>
