@@ -24,9 +24,9 @@ export default function VendorDash({ user }: { user: IUser }) {
 
 
 
-  const [shopName, setShopName] = useState(user.shopName);
-  const [shopAddress, setShopAddress] = useState(user.shopAddress);
-  const [gstNumber, setGstNumber] = useState(user.gstNumber);
+  const [shopName, setShopName] = useState(user?.shopName);
+  const [shopAddress, setShopAddress] = useState(user?.shopAddress);
+  const [gstNumber, setGstNumber] = useState(user?.gstNumber);
   const [Loading, setLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
 
@@ -278,7 +278,7 @@ const  Renderpage = ()=>{
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-     
+
 
               {
                 Renderpage()
