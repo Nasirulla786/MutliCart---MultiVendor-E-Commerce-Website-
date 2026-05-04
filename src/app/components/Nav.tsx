@@ -1,32 +1,44 @@
 //@ts-nocheck
-'use client'
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Home, ShoppingCart, Phone, LogOut,
-  X, Menu, ChevronDown, Settings, UserCircle,
-  Package, Heart, Store, LayoutGrid
+  Home,
+  ShoppingCart,
+  Phone,
+  X,
+  Menu,
+  ChevronDown,
+  Settings,
+  UserCircle,
+  Package,
+  Heart,
+  Store,
+  LayoutGrid,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import Image from "next/image";
-import VendorOrder from "../(entities)/vendors/vendor-components/VendorOrder";
 
 export default function Navbar({ user }: any) {
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  const role = user?.role;
   const router = useRouter();
   const { currentUser } = useSelector((state: RootState) => state.users);
 
+  const role = user?.role;
+
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(e.target as Node)
+      ) {
         setProfileOpen(false);
       }
     };
@@ -34,25 +46,31 @@ export default function Navbar({ user }: any) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const [activePage, setActivePage] = useState();
-
+  const go = (path: string) => {
+    router.push(path);
+    setOpen(false);
+  };
 
   return (
     <>
       {/* NAVBAR */}
       <motion.nav
-        initial={{ y: -60, opacity: 0 }}
+        initial={{ y: -40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
         className="w-full h-16 px-6 flex items-center justify-between
-                   bg-[#08090c] border-b border-white/[0.06] text-white"
+        bg-[#08090c] border-b border-white/10 text-white"
       >
         {/* LOGO */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-[10px] bg-[#1a1f2e] border border-[#6384ff]/25
-                          flex items-center justify-center">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke="#6384ff" strokeWidth="2">
+        <div className="flex items-center gap-3 min-w-[160px]">
+          <div className="w-9 h-9 rounded-lg bg-[#1a1f2e] flex items-center justify-center">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#6384ff"
+              strokeWidth="2"
+            >
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 01-8 0" />
@@ -63,193 +81,233 @@ export default function Navbar({ user }: any) {
           </span>
         </div>
 
-        {/* DESKTOP LINKS */}
-        <div className="hidden md:flex items-center gap-1">
+        {/* DESKTOP NAV */}
+        <div className="hidden md:flex flex-1 justify-center">
+          <div className="flex items-center gap-7">
+            {role === "user" && (
+              <>
+                <NavItem
+                  icon={<Home size={16} />}
+                  label="Home"
+                  onClick={() => go("/")}
+                />
+                <NavItem
+                  icon={<Store size={16} />}
+                  label="Shop"
+                  onClick={() => go("/shop")}
+                />
+                <NavItem
+                  icon={<LayoutGrid size={16} />}
+                  label="Category"
+                  onClick={() => go("/category")}
+                />
+                <NavItem
+                  icon={<Package size={16} />}
+                  label="Orders"
+                  onClick={() => go("/orders")}
+                />
 
-
-
-          {/* USER ONLY NAV */}
-          {role === "user" && (
-            <>
-              <NavLink onClick={() => router.push("/")} icon={<Home size={15} />} label="Home" active />
-
-              <NavLink onClick={() => router.push("/shop")} icon={<Store size={15} />} label="Shop" />
-
-              <NavLink onClick={() => router.push("/category")} icon={<LayoutGrid size={15} />} label="Category" />
-
-              <NavLink onClick={() => router.push("/orders")} icon={<Package size={15} />} label="Orders" />
-
-              <NavLink onClick={() => router.push("/wishlist")} icon={<Heart size={15} />} label="Wishlist" />
-
-              {/* <NavLink icon={<Phone size={15} />} label="Call" /> */}
-            </>
-          )}
-
-          {/* VENDOR ONLY */}
-          {role === "vendor" && (
-            <>
-              <NavLink icon={<Home size={15} />} label="Dashboard" active />
-                {/* <NavLink icon={<Phone size={15} />} label="Call" /> */}
-
-            </>
-
-
-          )}
+              </>
+            )}
+          </div>
         </div>
 
-
-        {/* RIGHT SIDE */}
-        <div className="hidden md:flex items-center gap-2">
-
-          {/* CART (USER ONLY) */}
+        {/* RIGHT */}
+        <div className="hidden md:flex items-center gap-3 min-w-[220px] justify-end">
           {role === "user" && (
             <button
               onClick={() => router.push("/cart")}
-              className="relative w-9 h-9 rounded-[10px]
-                         bg-white/[0.04] border border-white/[0.07]
-                         flex items-center justify-center text-white/60"
+              className="relative w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center hover:scale-105 transition cursor-pointer"
             >
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#6384ff] rounded-full
-                               text-[9px] flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#6384ff] rounded-full text-[10px] flex items-center justify-center">
                 {user?.cart?.length || 0}
               </span>
-              <ShoppingCart size={15} />
+              <ShoppingCart size={16} />
             </button>
           )}
 
-          <NavLink icon={<Phone size={15} />} label="Support" onClick={()=>router.push("/support-page")} />
+          <NavItem
+            icon={<Phone size={16} />}
+            label="Support"
+            onClick={() => go("/support-page")}
+          />
 
           {/* PROFILE */}
           <div ref={profileRef} className="relative">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center gap-2 px-3 py-[5px]
-                         rounded-xl bg-white/[0.04] border border-white/[0.07]"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:scale-105 transition"
             >
-              <div className="w-7 h-7 rounded bg-gradient-to-br from-[#6384ff] to-[#a78bfa] flex items-center justify-center">
+              <div className="w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-[#6384ff] to-purple-500 flex items-center justify-center">
                 {currentUser?.user?.image ? (
                   <Image
                     src={currentUser.user.image}
-                    alt="profile"
                     width={28}
                     height={28}
-                    className="rounded-full"
+                    alt=""
                   />
                 ) : (
                   <span className="text-xs font-bold">
-                    {currentUser?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    {currentUser?.user?.name?.charAt(0) || "U"}
                   </span>
                 )}
               </div>
 
-              <span className="text-[13px]">
-                {user?.name?.split(" ")[0] || "Profile"}
-              </span>
-
-              <motion.div animate={{ rotate: profileOpen ? 180 : 0 }}>
-                <ChevronDown size={13} />
-              </motion.div>
+              <ChevronDown
+                size={14}
+                className={`transition ${profileOpen ? "rotate-180" : ""}`}
+              />
             </button>
 
-            {/* DROPDOWN */}
             <AnimatePresence>
               {profileOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: -8 }}
+                  initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="absolute right-0 top-[52px] w-56
-                             bg-[#0f1117] border rounded-2xl p-2 z-10"
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute right-0 z-10 top-12 w-52 bg-[#0f1117] border border-white/10 rounded-xl p-2"
                 >
-                  <div className="px-3 py-2 border-b">
-                    <p className="text-sm">{user?.name}</p>
-                    <p className="text-xs text-gray-400">{user?.email}</p>
-                  </div>
-
-                  <div onClick={() => router.push("/profile")}>
-                    <DropItem icon={<UserCircle size={14} />} label="My Profile" />
-                  </div>
-
+                  <DropItem
+                    icon={<UserCircle size={14} />}
+                    label="Profile"
+                    onClick={() => go("/profile")}
+                  />
                   <DropItem icon={<Settings size={14} />} label="Settings" />
-
                   <button
                     onClick={() => signOut()}
-                    className="w-full text-red-400 mt-2 text-sm"
+                    className="w-full text-left px-3 py-2 text-red-400 text-sm hover:bg-white/5 rounded"
                   >
                     Logout
                   </button>
                 </motion.div>
               )}
-
-
             </AnimatePresence>
           </div>
         </div>
 
-
-        {/* MOBILE */}
+        {/* MOBILE BUTTON */}
         <button
           onClick={() => setOpen(true)}
-          className="md:hidden w-9 h-9 rounded bg-white/[0.04]"
+          className="md:hidden  p-2 hover:bg-white/10 rounded transition"
         >
-          <Menu size={17} />
+          <Menu />
         </button>
       </motion.nav>
 
-      {/* MOBILE SIDEBAR */}
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.div className="fixed inset-0 bg-black/60" />
+      {/* MOBILE MENU */}
+<AnimatePresence>
+  {open && (
+    <>
+      {/* OVERLAY */}
+      <div
+        onClick={() => setOpen(false)}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+      />
 
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              className="fixed right-0 w-72 h-full bg-[#08090c] p-5"
-            >
-              {role === "user" && (
-                <>
-                  <SideItem onClick={() => router.push("/")} icon={<Home size={16} />} label="Home" />
+      {/* SIDEBAR */}
+      <motion.div
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ type: "tween" }}
+        className="fixed right-0 top-0 w-72 h-full bg-[#0b0f19] border-l border-white/10 p-5 z-50 flex flex-col"
+      >
 
-                  <SideItem onClick={() => router.push("/shop")} icon={<Store size={16} />} label="Shop" />
+        {/* HEADER */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white">Menu</h2>
 
-                  <SideItem onClick={() => router.push("/category")} icon={<LayoutGrid size={16} />} label="Category" />
+          <button
+            onClick={() => setOpen(false)}
+            className="p-2 rounded-lg hover:bg-white/10 transition"
+          >
+            <X size={18} />
+          </button>
+        </div>
 
-                  <SideItem onClick={() => router.push("/orders")} icon={<Package size={16} />} label="Orders" />
+        {/* 🔥 PROFILE SECTION */}
+        <div
+          onClick={() => {
+            go("/profile");
+          }}
+          className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 cursor-pointer transition mb-5"
+        >
+          <div className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+            {currentUser?.user?.image ? (
+              <Image
+                src={currentUser.user.image}
+                alt="profile"
+                width={44}
+                height={44}
+                className="object-cover w-full h-full"
+              />
+            ) : (
+              <span className="text-sm font-bold text-white">
+                {currentUser?.user?.name?.charAt(0) || "U"}
+              </span>
+            )}
+          </div>
 
-                  <SideItem onClick={() => router.push("/wishlist")} icon={<Heart size={16} />} label="Wishlist" />
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-white">
+              {currentUser?.user?.name || "User"}
+            </span>
+            <span className="text-xs text-gray-400">
+              View Profile
+            </span>
+          </div>
+        </div>
 
-                  <SideItem icon={<ShoppingCart size={16} />} label="Cart" />
-                </>
-              )}
+        {/* MENU ITEMS */}
+        <div className="flex flex-col gap-2 flex-1">
+          <SidebarItem icon={<Home size={18} />} label="Home" onClick={() => go("/")} />
+          <SidebarItem icon={<Store size={18} />} label="Shop" onClick={() => go("/shop")} />
+          <SidebarItem icon={<LayoutGrid size={18} />} label="Category" onClick={() => go("/category")} />
+          <SidebarItem icon={<Package size={18} />} label="Orders" onClick={() => go("/orders")} />
+       
+          <SidebarItem icon={<ShoppingCart size={18} />} label="Cart" onClick={() => go("/cart")} />
+          <SidebarItem icon={<Phone size={18} />} label="Support" onClick={() => go("/support-page")} />
+        </div>
 
-              {role === "vendor" && (
-                <>
-                  <SideItem icon={<Home size={16} />} label="Dashboard" />
-                  <SideItem icon={<Package size={16} />} label="Orders" />
-                </>
-              )}
-
-              <button onClick={() => signOut()} className="text-red-400 mt-4">
-                Logout
-              </button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+        {/* FOOTER */}
+        <div className="pt-4 border-t border-white/10">
+          <button
+            onClick={() => signOut()}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition"
+          >
+            <X size={16} />
+            Logout
+          </button>
+        </div>
+      </motion.div>
+    </>
+  )}
+</AnimatePresence>
     </>
   );
 }
 
 /* COMPONENTS */
 
-function NavLink({ icon, label, active, onClick }: any) {
+function NavItem({ icon, label, onClick }: any) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-2 text-sm text-gray-400
+      hover:text-blue-400 hover:scale-105 transition cursor-pointer"
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+function DropItem({ icon, label, onClick }: any) {
   return (
     <div
       onClick={onClick}
-      className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer
-      ${active ? "text-blue-400" : "text-gray-400 hover:text-white"}`}
+      className="flex items-center gap-2 px-3 py-2 text-sm
+      hover:bg-white/5 hover:text-blue-400 rounded cursor-pointer transition"
     >
       {icon}
       {label}
@@ -257,20 +315,15 @@ function NavLink({ icon, label, active, onClick }: any) {
   );
 }
 
-function DropItem({ icon, label }: any) {
+function SidebarItem({ icon, label, onClick }: any) {
   return (
-    <div className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer">
-      {icon}
-      {label}
-    </div>
-  );
-}
-
-function SideItem({ icon, label, onClick }: any) {
-  return (
-    <div onClick={onClick} className="flex items-center gap-3 py-2 cursor-pointer">
-      {icon}
-      {label}
+    <div
+      onClick={onClick}
+      className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300
+      hover:bg-white/10 hover:text-white cursor-pointer transition-all"
+    >
+      <div className="opacity-80">{icon}</div>
+      <span className="text-sm font-medium">{label}</span>
     </div>
   );
 }

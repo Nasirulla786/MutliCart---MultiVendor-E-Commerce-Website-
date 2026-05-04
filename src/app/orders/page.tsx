@@ -18,13 +18,11 @@ const Page = () => {
 
   const [selectOrder, setSelectOrder] = useState<any>(null);
 
-  // FILTER MY ORDERS
   const myOrders =
     allOrdersData?.filter(
       //@ts-ignore
       (p: any) => p?.buyer?._id === currentUser?.user?._id
     ) || [];
-    console.log("my order",myOrders);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleString("en-IN", {
@@ -41,7 +39,6 @@ const Page = () => {
     try {
       await axios.post("/api/order/cancel-order", { orderID: id });
 
-      // ✅ FIXED LOGIC (ONLY TARGET ORDER UPDATE)
       const updatedData = allOrdersData.map((order: any) =>
         order?._id.toString() === id
           ? { ...order, orderStatus: "cancelled" }
@@ -49,15 +46,10 @@ const Page = () => {
       );
 
       dispatch(setAllOrdersData(updatedData));
-
       toast.success("Order cancelled");
-
-      // optional cleanup
       setSelectOrder(null);
 
     } catch (error: any) {
-      console.log("FULL ERROR:", error);
-
       if (error.response) {
         alert(error.response.data.message);
       } else {
@@ -73,7 +65,8 @@ const Page = () => {
   return (
     <div className="min-h-screen bg-[#0f172a] text-white p-4 md:p-8">
 
-      <div className="mb-5" onClick={() => router.push("/cart")}>
+      {/* BACK */}
+      <div className="mb-5 cursor-pointer" onClick={() => router.push("/")}>
         <ArrowBigLeft />
       </div>
 
@@ -81,11 +74,9 @@ const Page = () => {
         📦 My Orders
       </h1>
 
-      <div className="overflow-x-auto">
-
+      {/* ================= DESKTOP TABLE ================= */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full border border-gray-700 rounded-xl overflow-hidden">
-
-          {/* HEADER */}
           <thead className="bg-[#1e293b] text-gray-300 text-sm">
             <tr>
               <th className="p-3 text-left">Order ID</th>
@@ -99,7 +90,6 @@ const Page = () => {
             </tr>
           </thead>
 
-          {/* BODY */}
           <tbody>
             {myOrders.map((order: any) => (
               <tr
@@ -116,54 +106,47 @@ const Page = () => {
 
                 <td className="p-3 text-sm">
                   {order.products.map((p: any, i: number) => (
-                    <div key={i} className="text-gray-300">
-                      {p.product?.title || "Product"} × {p.quantity}
-                    </div>
+                    <div key={i}>{p.product?.title} × {p.quantity}</div>
                   ))}
                 </td>
 
-                <td className="p-3 text-sm text-gray-300">
-                  {order.productVendor?.shopName || "Vendor"}
+                <td className="p-3 text-sm">
+                  {order.productVendor?.shopName}
                 </td>
 
-                <td className="p-3 text-sm capitalize">
+                <td className="p-3 text-sm">
                   <span className="px-2 py-1 rounded bg-blue-600 text-xs">
                     {order.paymentMethod}
                   </span>
                 </td>
 
                 <td className="p-3 text-sm">
-           {order.orderStatus === "cancelled" ? (
-  <span className="text-red-400 font-semibold">Cancelled</span>
-) : order.isPaid ? (
-  <span className="text-green-400 font-semibold">Paid</span>
-) : (
-  <span className="text-gray-400 font-semibold">—</span>
-)}
+                  {order.orderStatus === "cancelled" ? (
+                    <span className="text-red-400">Cancelled</span>
+                  ) : order.isPaid ? (
+                    <span className="text-green-400">Paid</span>
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
                 </td>
 
                 <td className="p-3 font-bold text-blue-400">
                   ₹{order.totalAmount}
                 </td>
 
-                {/* ✅ FIXED UI */}
-                <td className="p-3 flex gap-2 items-center">
-                  {order.orderStatus === "cancelled" ? (
-                    <span className="text-red-400 font-semibold">
-                      Cancelled
-                    </span>
-                  ) : (
+                <td className="p-3 flex gap-2">
+                  {order.orderStatus !== "cancelled" && (
                     <>
                       <button
                         onClick={() => setSelectOrder(order)}
-                        className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm"
+                        className="px-3 py-1 bg-green-600 rounded text-sm"
                       >
                         Details
                       </button>
 
                       <button
-                        className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 rounded text-sm"
                         onClick={handleTracking}
+                        className="px-3 py-1 bg-yellow-500 rounded text-sm"
                       >
                         Track
                       </button>
@@ -174,100 +157,135 @@ const Page = () => {
             ))}
           </tbody>
         </table>
-
-        {/* EMPTY */}
-        {myOrders.length === 0 && (
-          <div className="text-center text-gray-400 mt-10">
-            No Orders Found 😢
-          </div>
-        )}
       </div>
+
+      {/* ================= MOBILE CARD UI ================= */}
+      <div className="md:hidden flex flex-col gap-4">
+        {myOrders.map((order: any) => (
+          <div
+            key={order._id}
+            className="bg-[#1e293b] rounded-xl p-4 border border-gray-700"
+          >
+            <div className="flex justify-between mb-2">
+              <span className="text-sm text-gray-400">
+                #{order._id.slice(-6)}
+              </span>
+              <span className="text-sm">
+                {formatDate(order.createdAt)}
+              </span>
+            </div>
+
+            <div className="text-sm text-gray-300 mb-2">
+              {order.products.map((p: any, i: number) => (
+                <div key={i}>
+                  {p.product?.title} × {p.quantity}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-between text-sm mb-2">
+              <span>{order.productVendor?.shopName}</span>
+              <span className="text-blue-400 font-bold">
+                ₹{order.totalAmount}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <span className="text-xs px-2 py-1 bg-blue-600 rounded">
+                {order.paymentMethod}
+              </span>
+
+              {order.orderStatus === "cancelled" ? (
+                <span className="text-red-400 text-sm">Cancelled</span>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectOrder(order)}
+                    className="px-2 py-1 bg-green-600 rounded text-xs"
+                  >
+                    Details
+                  </button>
+
+                  <button
+                    onClick={handleTracking}
+                    className="px-2 py-1 bg-yellow-500 rounded text-xs"
+                  >
+                    Track
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* EMPTY */}
+      {myOrders.length === 0 && (
+        <div className="text-center text-gray-400 mt-10">
+          No Orders Found 😢
+        </div>
+      )}
 
       {/* MODAL */}
       <AnimatePresence>
         {selectOrder && (
           <motion.div
-            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              initial={{ scale: 0.7, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.7, y: 50 }}
-              className="bg-[#1e293b] w-[95%] md:w-[600px] rounded-2xl p-6 shadow-xl"
+              initial={{ scale: 0.7 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.7 }}
+              className="bg-[#1e293b] w-full max-w-lg rounded-2xl p-5"
             >
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-blue-400">
-                  Order Details
-                </h2>
-                <button
-                  onClick={() => setSelectOrder(null)}
-                  className="text-red-400 text-lg"
-                >
-                  ✕
-                </button>
+              <h2 className="text-lg font-bold mb-4 text-blue-400">
+                Order Details
+              </h2>
+
+              <p className="text-sm mb-2">
+                #{selectOrder._id.slice(-6)}
+              </p>
+
+              <p className="text-sm mb-2">
+                {formatDate(selectOrder.createdAt)}
+              </p>
+
+              <p className="text-sm mb-2">
+                {selectOrder.productVendor?.shopName}
+              </p>
+
+              <div className="mt-3">
+                {selectOrder.products.map((p: any, i: number) => (
+                  <div key={i} className="flex justify-between text-sm">
+                    <span>{p.product?.title}</span>
+                    <span>x{p.quantity}</span>
+                  </div>
+                ))}
               </div>
 
-              <div className="space-y-3 text-sm">
-                <p>
-                  <span className="text-gray-400">Order ID:</span> #
-                  {selectOrder._id.slice(-6)}
-                </p>
-
-                <p>
-                  <span className="text-gray-400">Date:</span>{" "}
-                  {formatDate(selectOrder.createdAt)}
-                </p>
-
-                <p>
-                  <span className="text-gray-400">Vendor:</span>{" "}
-                  {selectOrder.productVendor?.shopName}
-                </p>
-
-                <p>
-                  <span className="text-gray-400">Payment:</span>{" "}
-                  {selectOrder.paymentMethod}
-                </p>
-
-                <div>
-                  <p className="text-gray-400 mb-1">Products:</p>
-                  {selectOrder.products.map((p: any, i: number) => (
-                    <div
-                      key={i}
-                      className="flex justify-between border-b border-gray-700 py-1"
-                    >
-                      <span>{p.product?.title}</span>
-                      <span>x{p.quantity}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <p className="font-bold text-blue-400 mt-2">
-                  Total: ₹{selectOrder.totalAmount}
-                </p>
-              </div>
-
-              <div className="flex gap-3 mt-6">
+              <div className="mt-4 flex gap-2">
                 <button
-                  className="flex-1 bg-red-600 hover:bg-red-700 py-2 rounded"
-                  onClick={() => handleCancel(String(selectOrder?._id))}
+                  className="flex-1 bg-red-600 py-2 rounded"
+                  onClick={() => handleCancel(selectOrder._id)}
                 >
-                  Cancel Order
+                  Cancel
                 </button>
 
                 <button
-                  className="flex-1 bg-yellow-500 hover:bg-yellow-600 py-2 rounded"
+                  className="flex-1 bg-yellow-500 py-2 rounded"
                   onClick={handleTracking}
                 >
-                  Track Order
+                  Track
                 </button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 };

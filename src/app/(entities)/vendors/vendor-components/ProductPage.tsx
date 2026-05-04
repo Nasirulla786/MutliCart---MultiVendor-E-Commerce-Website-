@@ -8,7 +8,6 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
-import { IUser } from "@/model/user.model";
 
 export default function VendorProductPage() {
   useGetAllProducts();
@@ -22,14 +21,12 @@ export default function VendorProductPage() {
     (state: RootState) => state.users.currentUser,
   );
 
-  // ✅ SAFE FILTER
   const myProducts = products.filter((p: IProduct) => {
     const vendorId = typeof p.vendor === "object" ? p.vendor?._id : p.vendor;
     //@ts-ignore
     return vendorId?.toString() === currentUser?.user?._id?.toString();
   });
 
-  // 🚀 OPTIMISTIC UPDATE
   const handleIsActive = async (id: string, active: boolean) => {
     const updated = products.map((p: IProduct) =>
       p._id.toString() === id ? { ...p, isActive: !active } : p,
@@ -43,26 +40,27 @@ export default function VendorProductPage() {
         isActive: !active,
       });
     } catch (error) {
-      dispatch(setAllProductsData(products)); // ❌ revert
+      dispatch(setAllProductsData(products));
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-white p-6">
+    <div className="min-h-screen bg-[#030712] text-white p-4 sm:p-6">
+
       {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">My Products</h1>
+        <h1 className="text-lg sm:text-2xl font-semibold">My Products</h1>
 
         <button
           onClick={() => router.push("/vendors/Add-product")}
-          className="bg-blue-600 hover:bg-blue-500 active:scale-95 transition px-5 py-2 rounded-xl"
+          className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-xs sm:text-sm"
         >
-          + Add Product
+          + Add
         </button>
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-hidden rounded-2xl border border-white/10">
+      {/* ================= DESKTOP TABLE ================= */}
+      <div className="hidden md:block overflow-hidden rounded-2xl border border-white/10">
         <table className="w-full text-sm">
           <thead className="bg-white/5 text-white/50">
             <tr>
@@ -75,109 +73,132 @@ export default function VendorProductPage() {
           </thead>
 
           <tbody>
-            {myProducts.length > 0 ? (
-              myProducts.map((product: IProduct) => (
-                <motion.tr
-                  key={product._id.toString()}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="border-t border-white/10 hover:bg-white/5 transition"
-                >
-                  {/* PRODUCT */}
+            {myProducts.map((product: IProduct) => {
+              const isApproved = product?.isApproved === true;
+
+              return (
+                <tr key={product._id.toString()} className="border-t border-white/10">
+
                   <td className="p-3 flex items-center gap-3">
-                    <img
-                      src={product.image1}
-                      className="w-14 h-14 object-cover rounded-lg"
-                    />
+                    <img src={product.image1} className="w-14 h-14 rounded-lg" />
                     <div>
-                      <p className="font-medium">{product.title}</p>
-                      <p className="text-xs text-white/40">
-                        {product.category}
-                      </p>
+                      <p>{product.title}</p>
+                      <p className="text-xs text-white/40">{product.category}</p>
                     </div>
                   </td>
 
-                  {/* PRICE */}
-                  <td className="text-center text-green-400 font-semibold">
-                    ₹{product.price}
-                  </td>
+                  <td className="text-center text-green-400">₹{product.price}</td>
 
-                  {/* STATUS */}
                   <td className="text-center">
-                    <span className="text-xs px-2 py-1 rounded-lg bg-yellow-500/20 text-yellow-300">
-                      {product.verificationStatus}
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      isApproved ? "bg-green-500/20 text-green-300" : "bg-yellow-500/20 text-yellow-300"
+                    }`}>
+                      {isApproved ? "Approved" : "Pending"}
                     </span>
                   </td>
 
-                  {/* TOGGLE */}
                   <td className="text-center">
-                    <div
-                      onClick={() =>
-                        handleIsActive(
-                          product._id.toString(),
-                          product.isActive as boolean,
-                        )
-                      }
-                      className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-all duration-300 ${
-                        product.isActive
-                          ? "bg-green-500 justify-end"
-                          : "bg-gray-500 justify-start"
-                      }`}
-                    >
-                      <motion.div
-                        layout
-                        transition={{
-                          type: "spring",
-                          stiffness: 500,
-                          damping: 30,
-                        }}
-                        className="w-4 h-4 bg-white rounded-full shadow"
-                      />
-                    </div>
+                    {product.isActive ? "Published" : "Not Published"}
                   </td>
 
-                  {/* ACTIONS */}
-                  <td className="text-center flex gap-2 justify-center -top-5 relative w-[50%] flex-col">
-                    {/* EDIT */}
+                  <td className="text-center flex flex-col gap-2 items-center py-3">
                     <button
-                      onClick={() =>
-                        router.push(`/vendors/update-product/${product._id}`)
-                      }
-                      className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-500 active:scale-95 transition rounded-lg"
+                      onClick={() => router.push(`/vendors/update-product/${product._id}`)}
+                      className="bg-blue-600 px-3 py-1 rounded text-xs"
                     >
                       Edit
                     </button>
 
-                    {/* ENABLE / DISABLE */}
                     <button
                       onClick={() =>
-                        handleIsActive(
-                          product._id.toString(),
-                          product.isActive as boolean,
-                        )
+                        handleIsActive(product._id.toString(), product.isActive as boolean)
                       }
-                      className={`px-3 py-1 text-xs rounded-lg transition active:scale-95 ${
-                        product.isActive
-                          ? "bg-red-500 hover:bg-red-600"
-                          : "bg-green-500 hover:bg-green-600"
-                      }`}
+                      disabled={!isApproved}
+                      className={`px-3 py-1 text-xs rounded ${
+                        product.isActive ? "bg-red-500" : "bg-green-500"
+                      } ${!isApproved && "opacity-50 cursor-not-allowed"}`}
                     >
-                      {product.isActive ? "Disable" : "Enable"}
+                      {!isApproved ? "Pending" : product.isActive ? "Disable" : "Enable"}
                     </button>
                   </td>
-                </motion.tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="text-center py-6 text-white/40">
-                  No products found
-                </td>
-              </tr>
-            )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
+      {/* ================= MOBILE CARDS ================= */}
+      <div className="md:hidden flex flex-col gap-4">
+        {myProducts.map((product: IProduct) => {
+          const isApproved = product?.isApproved === true;
+
+          return (
+            <motion.div
+              key={product._id.toString()}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-[#0f172a] border border-white/10 rounded-xl p-4"
+            >
+              {/* TOP */}
+              <div className="flex gap-3">
+                <img src={product.image1} className="w-16 h-16 rounded-lg object-cover" />
+
+                <div className="flex-1">
+                  <p className="font-medium">{product.title}</p>
+                  <p className="text-xs text-white/40">{product.category}</p>
+
+                  <p className="text-green-400 mt-1">₹{product.price}</p>
+                </div>
+              </div>
+
+              {/* STATUS */}
+              <div className="flex justify-between items-center mt-3 text-xs">
+                <span className={`px-2 py-1 rounded ${
+                  isApproved ? "bg-green-500/20 text-green-300" : "bg-yellow-500/20 text-yellow-300"
+                }`}>
+                  {isApproved ? "Approved" : "Pending"}
+                </span>
+
+                <span className={product.isActive ? "text-green-400" : "text-red-400"}>
+                  {product.isActive ? "Published" : "Not Published"}
+                </span>
+              </div>
+
+              {/* ACTIONS */}
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() =>
+                    router.push(`/vendors/update-product/${product._id}`)
+                  }
+                  className="flex-1 bg-blue-600 py-2 rounded text-xs"
+                >
+                  Edit
+                </button>
+
+                <button
+                  onClick={() =>
+                    handleIsActive(
+                      product._id.toString(),
+                      product.isActive as boolean,
+                    )
+                  }
+                  disabled={!isApproved}
+                  className={`flex-1 py-2 text-xs rounded ${
+                    product.isActive ? "bg-red-500" : "bg-green-500"
+                  } ${!isApproved && "opacity-50 cursor-not-allowed"}`}
+                >
+                  {!isApproved ? "Pending" : product.isActive ? "Disable" : "Enable"}
+                </button>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {myProducts.length === 0 && (
+        <p className="text-center text-white/40 mt-10">No products found</p>
+      )}
     </div>
   );
 }

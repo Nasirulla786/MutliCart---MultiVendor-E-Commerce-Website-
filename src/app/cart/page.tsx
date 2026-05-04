@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { ArrowBigLeft } from 'lucide-react'
 
 const Page = () => {
     const [cartItems, setCartItems] = useState([])
@@ -26,13 +27,15 @@ const Page = () => {
     return (
         <div className="min-h-screen bg-[#0f172a] text-white px-4 md:px-10 py-8">
 
+            <button className='ml-2 mb-5 cursor-pointer' onClick={()=>router.back()}><ArrowBigLeft /></button>
+
             <h1 className="text-3xl font-bold mb-8 text-blue-400">
                 🛒 My Cart
             </h1>
 
             {cartItems.length === 0 && (
                 <div className="text-center text-gray-400 mt-20">
-                    Cart is empty 😢
+                    Cart is empty
                 </div>
             )}
 
@@ -83,12 +86,7 @@ const Page = () => {
                                             </p>
                                         </div>
 
-                                        <button
-                                            onClick={() => removeItem(item.product._id)}
-                                            className="text-red-400 text-sm hover:underline mt-2"
-                                        >
-                                            Remove
-                                        </button>
+                                     
                                     </div>
                                 </div>
 

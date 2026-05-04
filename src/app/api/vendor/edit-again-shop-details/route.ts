@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json(
-            {message:"Verify again successfully "},
+            {vendor},
             {status:200},
 
         )

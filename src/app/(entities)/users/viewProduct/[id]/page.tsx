@@ -11,11 +11,13 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { ShoppingBag } from "lucide-react";
+import { ArrowBigLeft, ShoppingBag } from "lucide-react";
 
 const ProductDetailPage = () => {
   const params = useParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
+   const [loadingState, setLoadingState] = useState(false)
+   const router = useRouter();
 
   const { allProductsData } = useSelector((state: RootState) => state.vendors);
 
@@ -49,7 +51,7 @@ const ProductDetailPage = () => {
     return <div className="text-center mt-20 text-gray-400">Product not found</div>;
   }
 
-  const router = useRouter();
+  // const router = useRouter();
 
   const images: string[] = [
     product.image1,
@@ -73,9 +75,12 @@ const ProductDetailPage = () => {
     setTimeout(() => setAdded(false), 1500);
   };
 
+
   // ✅ REVIEW SUBMIT
+
   const handleReview = async () => {
     try {
+      setLoadingState(true)
       if (!reviewRating) return alert("Select rating");
       if (!reviewComment) return alert("Write comment");
 
@@ -101,15 +106,21 @@ const ProductDetailPage = () => {
       setReviewComment("");
       setReviewImage(null);
       setReviewPreviewImage(null);
+      setLoadingState(false)
 
     } catch (err: any) {
       console.log(err);
       alert(err.message);
+      setLoadingState(false)
     }
   };
 
+
+
+
   return (
     <div className="bg-[#181818] min-h-screen py-8 text-[#e0e0e0]">
+          <button className=' m-5  cursor-pointer' onClick={()=>router.back()}><ArrowBigLeft /></button>
       <div className="max-w-5xl mx-auto px-4">
         {/* Product Card Section */}
         <div className="flex flex-col md:flex-row gap-10 bg-[#232323] rounded-2xl shadow-lg p-6">
@@ -179,18 +190,15 @@ const ProductDetailPage = () => {
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={handleAddToCart}
-                className="flex-1 bg-[#90ee90] text-black font-bold py-2 rounded shadow hover:bg-[#b2ffb2] transition"
+                className="flex-1 bg-[#90ee90] text-black font-bold py-2 rounded shadow hover:bg-[#b2ffb2] transition cursor-pointer"
               >
                 {added ? "✓ Added to Cart" : "Add to Cart"}
               </motion.button>
-              <button className="flex-1 bg-[#232323] border border-[#90ee90] text-[#90ee90] flex ite' justify-center gap-2 font-bold py-2 rounded shadow hover:bg-[#333] transition" onClick={() => router.push("/cart")}>
+              <button className="flex-1 bg-[#232323] border border-[#90ee90] text-[#90ee90] flex ite' justify-center gap-2 font-bold py-2 rounded shadow hover:bg-[#333] cursor-pointer transition" onClick={() => router.push("/cart")}>
                 <ShoppingBag /> <span>Check Cart</span>
               </button>
             </div>
-            <div className="flex gap-2 mt-2">
-              <button className="flex-1 bg-[#232323] border border-[#333] text-[#e0e0e0] py-2 rounded hover:bg-[#333] transition">Add to Wishlist</button>
-              <button className="flex-1 bg-[#232323] border border-[#333] text-[#e0e0e0] py-2 rounded hover:bg-[#333] transition">Share</button>
-            </div>
+
           </div>
         </div>
 
@@ -258,9 +266,10 @@ const ProductDetailPage = () => {
           </div>
           <button
             onClick={handleReview}
-            className="mt-2 bg-[#90ee90] text-black px-6 py-2 rounded font-bold shadow hover:bg-[#b2ffb2] transition"
+            className="mt-2 bg-[#90ee90] text-black px-6 py-2 rounded font-bold shadow hover:bg-[#b2ffb2] transition cursor-pointer"
           >
-            Submit
+            {loadingState?<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>:<span>Submit</span>
+                        }
           </button>
         </div>
 

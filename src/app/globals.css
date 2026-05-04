@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 
-/* html{
-    overflow-y: hidden;
-} */
 
+html , body{
+    background-color: rgb(12, 12, 29);
+}
